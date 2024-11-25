@@ -31,7 +31,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
 
     Intake.SampleColor targetColor = Intake.SampleColor.YELLOW;
 
-    public static int targetLiftPosSample = 3000;
+    public static int targetLiftPosSample =2950;
 
     public static Intake.SampleColor allianceColor= Intake.SampleColor.BLUE;
     Intake.SampleColor currentSense= Intake.SampleColor.NONE;
@@ -61,7 +61,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 .transition(() -> gamepad1.y)
                 .state(SampleStates.EXTEND)
                 .onEnter(()->intake.setExtended(true))
-                .transitionTimed(0.1)
+                .transitionTimed(0.025)
                 .state(SampleStates.DROP)
                 .onEnter(() -> intake.intakePosition())
                 .loop(()->{
@@ -95,16 +95,19 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 .onEnter(() -> {
                     intake.retract();
                     intake.setCover(true);
-                    intake.setPower(0.7);
+                    intake.setPower(0.3);
                     outtake.transferPos();
                 })
-                .transitionTimed(0.2)
+                .transitionTimed(0.1)
                 .state(SampleStates.OPENCOVER)
-                .onEnter(() -> intake.setCover(false))
+                .onEnter(() -> {
+                    intake.setCover(false);
+                    intake.setPower(0);
+                })
                 .transition(() -> intake.isDone())
 
                 .state(SampleStates.WAIT)
-                .onEnter(() -> intake.setPower(0.4))
+                .onEnter(() -> intake.setPower(0.2))
                 .transitionTimed(0.7)
 
                 .state(SampleStates.CLOSE)
@@ -125,16 +128,23 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 .state(SampleStates.WRIST).onEnter(() -> {
                     outtake.scorePos();
                     intake.setPower(0);
-                    intake.setPower(-0.2);
+                    intake.setPower(-0.5);
                 }).loop(() -> {
                     if (gamepad1.left_trigger > 0.3) {
                         outtake.setTargetPos(500);
                     }
                 }).transition(() -> gamepad1.left_bumper)
 
-                .state(SampleStates.OPEN).onEnter(() -> outtake.openClaw()).transitionTimed(1.5)
-
-                .state(SampleStates.LOWERLIFT).onEnter(() -> {
+                .state(SampleStates.OPEN)
+                .onEnter(() -> outtake.openClaw())
+                .transitionTimed(1.5)
+                .transition(()->gamepad1.y)
+                .onExit(() -> {
+                    outtake.setTargetPos(0);
+                    outtake.transferPos();
+                })
+                .state(SampleStates.LOWERLIFT)
+                .onEnter(() -> {
                     outtake.setTargetPos(0);
                     outtake.transferPos();
                 }).transition(() -> (outtake.atTarget() || gamepad1.y), SampleStates.IDLE).build();
@@ -241,7 +251,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 pullingdown=true;
             }
             if (pullingdown){
-                if (outtake.getLiftPos()>2000){
+                if (outtake.getLiftPos()>1900){
                     outtake.setPower(-1);
                 }else{
                     outtake.setPower(-0.5);
@@ -256,6 +266,8 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 outtake.update();
             }
             telemetry.addData("target color", targetColor.toString());
+            telemetry.addData("alliance color", allianceColor.toString());
+
             telemetry.addData("State sample", sampleMachine.getState());
             telemetry.addData("Specimen sample", specimenScorer.getState());
 

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.CachedMotorEx;
@@ -10,7 +11,7 @@ import org.firstinspires.ftc.teamcode.hardware.CachedMotorEx;
 public class Outtake implements Subsystem{
     private CachedMotorEx leftLift, rightLift;
     private Servo depositFlip1, depositFlip2, wrist, claw;
-
+    private TouchSensor outtakeEnd0;
     private int targetPos=0;
 
     public enum possibleHeights {HIGHBASKET, LOWBASKET, HIGHSPECIMEN, LOWSPECIMEN, HUMANPLAYER}
@@ -27,6 +28,9 @@ public class Outtake implements Subsystem{
 
         wrist=hwMap.servo.get("wrist");
         claw=hwMap.servo.get("claw");
+
+        outtakeEnd0=hwMap.get(TouchSensor.class, "outtake_limit_0");
+
 
         resetEncoder();
 
@@ -84,6 +88,9 @@ public class Outtake implements Subsystem{
     }
     @Override
     public void update() {
+        if (outtakeEnd0.isPressed()){
+            resetEncoder();
+        }
         double controller_output=controller.calculate(getLiftPos());
         telemetry.addData("Outtake applied power", controller_output);
         setPower(controller_output);

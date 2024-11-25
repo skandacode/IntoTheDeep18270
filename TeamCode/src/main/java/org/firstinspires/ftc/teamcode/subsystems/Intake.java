@@ -79,7 +79,7 @@ public class Intake implements Subsystem {
     }
     public void setCover(boolean closed){
         if (closed){
-            cover.setPosition(0.9);
+            cover.setPosition(0.94);
         }else{
             cover.setPosition(0.08);
         }
@@ -128,9 +128,6 @@ public class Intake implements Subsystem {
     }
     public SampleColor getColor(){
         if (getDistance()<4){
-            for (int i=0; i<10; i++){
-                getRawSensorValues();
-            }
             int[] rgbValues = getRawSensorValues();
             System.out.println(Arrays.toString(rgbValues));
             int[] tweakedValues = new int[] {rgbValues[0], rgbValues[1]-25, rgbValues[2]-100};
