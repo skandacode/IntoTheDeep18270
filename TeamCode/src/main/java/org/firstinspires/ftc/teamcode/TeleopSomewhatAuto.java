@@ -31,7 +31,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
 
     Intake.SampleColor targetColor = Intake.SampleColor.YELLOW;
 
-    public static int targetLiftPosSample =2950;
+    public static int targetLiftPosSample =2900;
 
     public static Intake.SampleColor allianceColor= Intake.SampleColor.BLUE;
     Intake.SampleColor currentSense= Intake.SampleColor.NONE;
@@ -137,8 +137,8 @@ public class TeleopSomewhatAuto extends LinearOpMode {
 
                 .state(SampleStates.OPEN)
                 .onEnter(() -> outtake.openClaw())
-                .transitionTimed(1.5)
-                .transition(()->gamepad1.y)
+                .transitionTimed(0.5)
+                .transition(()->gamepad1.y || gamepad1.left_stick_y<-0.1)
                 .onExit(() -> {
                     outtake.setTargetPos(0);
                     outtake.transferPos();
@@ -147,7 +147,10 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 .onEnter(() -> {
                     outtake.setTargetPos(0);
                     outtake.transferPos();
-                }).transition(() -> (outtake.atTarget() || gamepad1.y), SampleStates.IDLE).build();
+                })
+                .transition(()->gamepad1.left_trigger>0.3)
+                .transition(() -> (outtake.atTarget() || gamepad1.y), SampleStates.IDLE)
+                .build();
         StateMachine specimenScorer = new StateMachineBuilder()
                 .state(SpecimenScoreStates.IDLE)
                 .transition(() -> gamepad1.dpad_up)
@@ -278,7 +281,6 @@ public class TeleopSomewhatAuto extends LinearOpMode {
 
             telemetry.addData("Outtake Pos", outtake.getLiftPos());
             telemetry.addData("Extendo Pos", intake.getExtendoMotorPos());
-
             long currLoop = System.nanoTime();
             telemetry.addData("Ms per loop", (currLoop - prevLoop) / 1000000);
             prevLoop = currLoop;

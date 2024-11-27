@@ -127,10 +127,10 @@ public class Intake implements Subsystem {
         return intakecolor.getDistance(DistanceUnit.CM);
     }
     public SampleColor getColor(){
-        if (getDistance()<4){
+        if (getDistance()<4.5){
             int[] rgbValues = getRawSensorValues();
             System.out.println(Arrays.toString(rgbValues));
-            int[] tweakedValues = new int[] {rgbValues[0], rgbValues[1]-25, rgbValues[2]-100};
+            int[] tweakedValues = new int[] {rgbValues[0], rgbValues[1]-25, rgbValues[2]-60};
             if (tweakedValues[0]>tweakedValues[1] && tweakedValues[0]>tweakedValues[2]){
                 System.out.println(Arrays.toString(tweakedValues)+" Red");
                 return SampleColor.RED;
@@ -146,6 +146,7 @@ public class Intake implements Subsystem {
         }else{
             return SampleColor.NONE;
         }
+        System.out.println("Possible intake hang");
         return SampleColor.NONE;
     }
 
