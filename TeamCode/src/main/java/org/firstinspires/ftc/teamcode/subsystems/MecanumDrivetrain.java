@@ -22,18 +22,18 @@ public class MecanumDrivetrain{
     CachedMotorEx leftBack;
     CachedMotorEx rightFront;
     CachedMotorEx rightBack;
-    
-    SimpleMotorFeedforward forwardFeedforward=new SimpleMotorFeedforward(0.12, 1);
-    SimpleMotorFeedforward strafeFeedforward=new SimpleMotorFeedforward(0.26, 1);
-    SimpleMotorFeedforward headingFeedforward=new SimpleMotorFeedforward(0.135, 1);
 
-    PIDFController translationalControllerY=new PIDFController(0.1, 0, 0.008, 0);
+    SimpleMotorFeedforward forwardFeedforward=new SimpleMotorFeedforward(0.08, 0.9);
+    SimpleMotorFeedforward strafeFeedforward=new SimpleMotorFeedforward(0.2, 1);
+    SimpleMotorFeedforward headingFeedforward=new SimpleMotorFeedforward(0.1, 1);
+
+    PIDFController translationalControllerY=new PIDFController(0.1, 0, 0.01, 0);
     PIDFController translationalControllerX=new PIDFController(
             translationalControllerY.getP(),
             translationalControllerY.getI(),
             translationalControllerY.getD(),
             translationalControllerY.getF());
-    PIDFController headingController=new PIDFController(1, 0, 0, 0);
+    PIDFController headingController=new PIDFController(1, 0, 0.05, 0);
 
     Telemetry telemetry;
     FtcDashboard dashboard;
@@ -54,7 +54,9 @@ public class MecanumDrivetrain{
         rightBack.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
 
         odometry = hwMap.get(GoBildaPinpointDriver.class,"odo");
-
+        odometry.setOffsets(72.0, -168.0);
+        odometry.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        odometry.recalibrateIMU();
     }
 
     public void setRawPowers(double frontleft, double frontright, double backleft, double backright){
@@ -114,9 +116,6 @@ public class MecanumDrivetrain{
 
         dashboard.sendTelemetryPacket(packet);
     }
-    public Pose2D getVelocity(){
-        return odometry.getVelocity();
-    }
     public void updatePIDS(){
         double heading=odometry.getPosition().getHeading(AngleUnit.RADIANS);
         while (Math.abs(heading-headingController.getSetPoint())>Math.PI){
@@ -129,6 +128,16 @@ public class MecanumDrivetrain{
         double x_velo=translationalControllerX.calculate(odometry.getPosition().getX(DistanceUnit.INCH));
         double y_velo=translationalControllerY.calculate(odometry.getPosition().getY(DistanceUnit.INCH));
         double heading_velo=headingController.calculate(heading);
+
+        if (translationalControllerX.atSetPoint()){
+            x_velo=0;
+        }
+        if (translationalControllerY.atSetPoint()){
+            y_velo=0;
+        }
+        if (headingController.atSetPoint()){
+            heading_velo=0;
+        }
         telemetry.addData("velocity x", x_velo);
         telemetry.addData("velocity y", y_velo);
         telemetry.addData("velocity heading", heading_velo);
@@ -139,6 +148,7 @@ public class MecanumDrivetrain{
     }
     public void setPosition(Pose2D targetPosition){
         odometry.setPosition(targetPosition);
+
     }
     public void calibrateIMU(){
         odometry.recalibrateIMU();

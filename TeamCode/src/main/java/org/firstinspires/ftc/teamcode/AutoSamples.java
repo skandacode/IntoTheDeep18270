@@ -211,14 +211,19 @@ public class AutoSamples extends LinearOpMode {
                 .state(autoStates.TOUCHBAR)
                 .onEnter(()->{
                     outtake.setFlipPos(0.2);
-                    drive.setTarget(new WayPoint(drive.position, new Pose2D(DistanceUnit.INCH, 2, 2, AngleUnit.DEGREES, 2)));
+                    drive.setTarget(new WayPoint(drive.odometry.getPosition(), new Pose2D(DistanceUnit.INCH, 2, 2, AngleUnit.DEGREES, 2)));
                 })
                 .build();
 
         WayPoint startPoint=new WayPoint(new Pose2D(DistanceUnit.INCH, -36, -63, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 0.5));
 
+        while (opModeInInit()){
+            telemetry.addData("Velocity", drive.odometry.getVelocity());
+        }
+
         waitForStart();
+        intake.retract();
         drive.setTarget(startPoint);
         drive.setPosition(startPoint.getPosition());
         sampleMachine.start();
