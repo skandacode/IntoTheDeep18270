@@ -4,12 +4,14 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.sfdev.assembly.state.StateMachine;
 import com.sfdev.assembly.state.StateMachineBuilder;
 
+import org.firstinspires.ftc.robotcore.internal.opengl.models.SavedMeshObject;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
@@ -18,13 +20,13 @@ import java.util.List;
 
 @Config
 @TeleOp
-public class TeleopSomewhatAuto extends LinearOpMode {
+public class FasterTeleop extends LinearOpMode {
     Outtake outtake;
     Intake intake;
     MecanumDrivetrain drive;
 
     public enum SampleStates {
-        IDLE, EXTEND, DROP, SENSORWAIT, SENSE, RETRACT, OPENCOVER, WAIT, CLOSE, LIFT, WRIST, OPEN, LOWERLIFT, EJECT
+        IDLE, EXTEND, DROP, SENSORWAIT, SENSE, RETRACT, OPENCOVER, WAIT, CLOSE, LIFT, WRIST, OPEN, LOWERLIFT, EJECT, LIDOPENEJECT
     }
 
     public enum SpecimenScoreStates {IDLE, INTAKEPOS, INTAKE, CLOSE_CLAW, HOLD, SCORE, OPENCLAW, RETRACT}
@@ -58,10 +60,15 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                     intake.retract();
                     intake.setPower(0);
                 })
-                .transition(() -> gamepad1.y)
+                .transition(() -> gamepad1.right_trigger>0.3, SampleStates.EXTEND)
+
+
                 .state(SampleStates.EXTEND)
                 .onEnter(()->intake.setExtended(true))
-                .transitionTimed(0.025)
+                .transition(()->gamepad1.right_bumper, SampleStates.DROP)
+                .transition(()->gamepad1.right_trigger<0.3, SampleStates.IDLE)
+
+
                 .state(SampleStates.DROP)
                 .onEnter(() -> intake.intakePosition())
                 .loop(()->{
@@ -75,10 +82,15 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                         }
                     }
                 })
-                .transition(()->intake.getDistance()<4.5)
+                .transition(()->intake.getDistance()<4.5, SampleStates.SENSORWAIT)
+                .transition(()->gamepad1.right_trigger<0.3, SampleStates.IDLE)
+
+
                 .state(SampleStates.SENSORWAIT)
                 .onEnter(()->intake.intakePosition())
-                .transitionTimed(0.1)
+                .transitionTimed(0.1, SampleStates.SENSE)
+
+
                 .state(SampleStates.SENSE)
                 .transition(() -> {
                     currentSense=intake.getColor();
@@ -88,10 +100,11 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 .transition(() -> currentSense != targetColor && currentSense != allianceColor, SampleStates.EJECT)
 
                 .state(SampleStates.EJECT, true)
-                .onEnter(() -> {
-                    intake.eject();
-                    intake.setCover(false);
-                })
+                .onEnter(() -> intake.eject())
+                .transitionTimed(0.2, SampleStates.LIDOPENEJECT)
+
+                .state(SampleStates.LIDOPENEJECT, true)
+                .onEnter(()->intake.setCover(false))
                 .transitionTimed(0.7, SampleStates.DROP)
 
                 .state(SampleStates.RETRACT)
@@ -101,21 +114,21 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                     intake.setPower(0.3);
                     outtake.transferPos();
                 })
-                .transitionTimed(0.1)
+                .transitionTimed(0.1, SampleStates.OPENCOVER)
                 .state(SampleStates.OPENCOVER)
                 .onEnter(() -> {
                     intake.setCover(false);
                     intake.setPower(0);
                 })
-                .transition(() -> intake.isDone())
+                .transition(() -> intake.isDone() && outtake.getTargetPos()<10, SampleStates.WAIT)
 
                 .state(SampleStates.WAIT)
                 .onEnter(() -> intake.setPower(0.2))
-                .transitionTimed(0.7)
+                .transitionTimed(0.7, SampleStates.CLOSE)
 
                 .state(SampleStates.CLOSE)
                 .onEnter(() -> outtake.closeClaw())
-                .transitionTimed(0.2)
+                .transitionTimed(0.2, SampleStates.LIFT)
 
                 .state(SampleStates.LIFT)
                 .onEnter(() -> {
@@ -126,7 +139,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                         outtake.setTargetPos(500);
                     }
                 })
-                .transitionTimed(0.2)
+                .transitionTimed(0.2, SampleStates.WRIST)
 
                 .state(SampleStates.WRIST).onEnter(() -> {
                     outtake.scorePos();
@@ -136,12 +149,11 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                     if (gamepad1.left_trigger > 0.3) {
                         outtake.setTargetPos(500);
                     }
-                }).transition(() -> gamepad1.left_bumper)
+                }).transition(() -> gamepad1.right_bumper)
 
                 .state(SampleStates.OPEN)
                 .onEnter(() -> outtake.openClaw())
-                .transitionTimed(0.5)
-                .transition(()->gamepad1.y || gamepad1.left_stick_y<-0.1)
+                .transition(()->gamepad1.right_trigger>0.3 || gamepad1.left_stick_y<-0.1)
                 .onExit(() -> {
                     outtake.setTargetPos(0);
                     outtake.transferPos();
@@ -151,12 +163,12 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                     outtake.setTargetPos(0);
                     outtake.transferPos();
                 })
-                .transition(()->gamepad1.left_trigger>0.3)
-                .transition(() -> (outtake.atTarget() || gamepad1.y), SampleStates.IDLE)
+                .transition(() -> outtake.getTargetPos()<10 || gamepad1.right_trigger>0.3 || gamepad1.left_stick_y<-0.1, SampleStates.IDLE)
                 .build();
+
         StateMachine specimenScorer = new StateMachineBuilder()
                 .state(SpecimenScoreStates.IDLE)
-                .transition(() -> gamepad1.dpad_up)
+                .transition(() -> gamepad1.left_trigger>0.5 && sampleMachine.getState()==SampleStates.IDLE)
                 .state(SpecimenScoreStates.INTAKEPOS)
                 .onEnter(() -> {
                     outtake.scorePos();
@@ -166,13 +178,13 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 .transitionTimed(0.7)
                 .state(SpecimenScoreStates.INTAKE)
                 .onEnter(() -> outtake.setTargetPos(0))
-                .transition(() -> gamepad1.dpad_down)
+                .transition(() -> gamepad1.right_bumper)
                 .state(SpecimenScoreStates.CLOSE_CLAW)
                 .onEnter(() -> outtake.closeClaw())
                 .transitionTimed(0.3)
                 .state(SpecimenScoreStates.HOLD)
                 .onEnter(() -> outtake.specimenHoldPos())
-                .transition(() -> (outtake.atTarget() && gamepad1.left_bumper))
+                .transition(() -> (outtake.atTarget() && gamepad1.right_bumper))
                 .state(SpecimenScoreStates.SCORE)
                 .onEnter(() -> outtake.specimenScorePos())
                 .transitionTimed(0.3)
@@ -209,32 +221,18 @@ public class TeleopSomewhatAuto extends LinearOpMode {
         outtake.transferPos();
         sampleMachine.start();
         specimenScorer.start();
-        boolean prevSampleColorToggle = false;
         long prevLoop = System.nanoTime();
         while (opModeIsActive()) {
             for (LynxModule hub : allHubs) {
                 hub.clearBulkCache();
             }
-            boolean currSampleColorToggle = gamepad1.right_trigger>0.5;
-            if (currSampleColorToggle && !prevSampleColorToggle) {
-                if (targetColor == Intake.SampleColor.YELLOW) {
-                    targetColor = allianceColor;
-                } else if (targetColor == allianceColor) {
-                    targetColor = Intake.SampleColor.YELLOW;
-                }
+            if (gamepad1.b){
+                targetColor=allianceColor;
             }
-            if (gamepad1.share && outtake.getTargetPos()==0){
-                outtake.resetEncoder();
+            if (gamepad1.a){
+                targetColor= Intake.SampleColor.YELLOW;
             }
-            if (gamepad1.x) {
-                if (sampleMachine.getState() == SampleStates.EXTEND || sampleMachine.getState() == SampleStates.DROP) {
-                    sampleMachine.setState(SampleStates.IDLE);
-                    intake.retract();
-                    intake.setPower(0);
-                }
-            }
-
-            if (!gamepad1.right_bumper) {
+            if (!gamepad1.left_bumper) {
                 drive.setWeightedPowers(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x);
             } else {
                 drive.setWeightedPowers(-gamepad1.left_stick_y / 5, -gamepad1.left_stick_x / 5, -gamepad1.right_stick_x / 8);
@@ -246,14 +244,14 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 outtake.closeClaw();
                 sampleMachine.setState(SampleStates.CLOSE);
             }
-            if (gamepad1.left_stick_button){
+            if (gamepad1.dpad_left){
                 hanging=true;
                 intake.retract();
                 intake.setPower(0);
                 outtake.transferPos();
                 outtake.setTargetPos(2900);
             }
-            if (gamepad1.right_stick_button && hanging){
+            if (gamepad1.dpad_right && hanging){
                 pullingdown=true;
             }
             if (pullingdown){
@@ -289,7 +287,6 @@ public class TeleopSomewhatAuto extends LinearOpMode {
             prevLoop = currLoop;
 
             telemetry.update();
-            prevSampleColorToggle = currSampleColorToggle;
         }
     }
 }
