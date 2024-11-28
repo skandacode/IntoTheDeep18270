@@ -7,7 +7,6 @@ import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.controller.wpilibcontroller.SimpleMotorFeedforward;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
-import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -18,11 +17,12 @@ import org.firstinspires.ftc.teamcode.hardware.CachedMotorEx;
 import org.firstinspires.ftc.teamcode.pathing.WayPoint;
 
 @Config
-public class MecanumDrivetrain implements Subsystem{
+public class MecanumDrivetrain{
     CachedMotorEx leftFront;
     CachedMotorEx leftBack;
     CachedMotorEx rightFront;
     CachedMotorEx rightBack;
+    
     SimpleMotorFeedforward forwardFeedforward=new SimpleMotorFeedforward(0.12, 1);
     SimpleMotorFeedforward strafeFeedforward=new SimpleMotorFeedforward(0.26, 1);
     SimpleMotorFeedforward headingFeedforward=new SimpleMotorFeedforward(0.135, 1);
@@ -38,9 +38,8 @@ public class MecanumDrivetrain implements Subsystem{
     Telemetry telemetry;
     FtcDashboard dashboard;
 
-    public SparkFunOTOS odometry;
+    public GoBildaPinpointDriver odometry;
 
-    public Pose2D position;
 
     public MecanumDrivetrain(HardwareMap hwMap, Telemetry telemetry, FtcDashboard dashboard){
         this.telemetry=telemetry;
@@ -53,6 +52,8 @@ public class MecanumDrivetrain implements Subsystem{
         rightFront.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         leftBack.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         rightBack.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+
+        odometry = hwMap.get(GoBildaPinpointDriver.class,"odo");
 
     }
 
@@ -100,10 +101,10 @@ public class MecanumDrivetrain implements Subsystem{
         headingController.setTolerance(target.getTolerance().getHeading(AngleUnit.RADIANS));
     }
     public void update() {
-        SparkFunOTOS.Pose2D rawposition= new SparkFunOTOS.Pose2D();
-        position=new Pose2D(DistanceUnit.INCH, rawposition.x, rawposition.y, AngleUnit.DEGREES, rawposition.h);
-
+        odometry.update();
+        Pose2D position = odometry.getPosition();
         telemetry.addData("position", position.getX(DistanceUnit.INCH)+" "+position.getY(DistanceUnit.INCH)+" "+position.getHeading(AngleUnit.DEGREES));
+
         TelemetryPacket packet = new TelemetryPacket();
         packet.fieldOverlay().setFill("blue")
                 .strokeCircle(position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH), 5)
@@ -113,11 +114,11 @@ public class MecanumDrivetrain implements Subsystem{
 
         dashboard.sendTelemetryPacket(packet);
     }
-    public SparkFunOTOS.Pose2D getVelocity(){
-        return new SparkFunOTOS.Pose2D();
+    public Pose2D getVelocity(){
+        return odometry.getVelocity();
     }
     public void updatePIDS(){
-        double heading=position.getHeading(AngleUnit.RADIANS);
+        double heading=odometry.getPosition().getHeading(AngleUnit.RADIANS);
         while (Math.abs(heading-headingController.getSetPoint())>Math.PI){
             if (heading<headingController.getSetPoint()){
                 heading=heading+2*Math.PI;
@@ -125,35 +126,21 @@ public class MecanumDrivetrain implements Subsystem{
                 heading=heading-2*Math.PI;
             }
         }
-        double x_velo=translationalControllerX.calculate(position.getX(DistanceUnit.INCH));
-        double y_velo=translationalControllerY.calculate(position.getY(DistanceUnit.INCH));
+        double x_velo=translationalControllerX.calculate(odometry.getPosition().getX(DistanceUnit.INCH));
+        double y_velo=translationalControllerY.calculate(odometry.getPosition().getY(DistanceUnit.INCH));
         double heading_velo=headingController.calculate(heading);
         telemetry.addData("velocity x", x_velo);
         telemetry.addData("velocity y", y_velo);
         telemetry.addData("velocity heading", heading_velo);
-
-        if (translationalControllerY.atSetPoint()){
-            y_velo=0;
-        }
-        if (translationalControllerX.atSetPoint()){
-            x_velo=0;
-        }
-        if (headingController.atSetPoint()){
-            heading_velo=0;
-        }
-
-
         driveFieldCentric(x_velo, y_velo,heading_velo, heading);
     }
     public boolean atTarget(){
         return translationalControllerX.atSetPoint() && translationalControllerY.atSetPoint() && headingController.atSetPoint();
     }
     public void setPosition(Pose2D targetPosition){
-
-        odometry.setPosition(new SparkFunOTOS.Pose2D(targetPosition.getX(DistanceUnit.INCH),
-                targetPosition.getY(DistanceUnit.INCH), targetPosition.getHeading(AngleUnit.DEGREES)));
+        odometry.setPosition(targetPosition);
     }
     public void calibrateIMU(){
-        odometry.calibrateImu();
+        odometry.recalibrateIMU();
     }
 }
