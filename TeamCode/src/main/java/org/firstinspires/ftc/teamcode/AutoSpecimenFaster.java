@@ -51,21 +51,21 @@ public class AutoSpecimenFaster extends LinearOpMode {
         WayPoint depositPosPreload2=new WayPoint(new Pose2D(DistanceUnit.INCH, -3, -27, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH,  1, 1, AngleUnit.DEGREES, 2));
         WayPoint depositPos1=new WayPoint(new Pose2D(DistanceUnit.INCH, -6, -50, AngleUnit.DEGREES, 90),
-                new Pose2D(DistanceUnit.INCH,  1, 2, AngleUnit.DEGREES, 2));
+                new Pose2D(DistanceUnit.INCH,  4, 4, AngleUnit.DEGREES, 3));
         WayPoint depositPos2=new WayPoint(new Pose2D(DistanceUnit.INCH, -6, -27, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH,  1, 1, AngleUnit.DEGREES, 2));
         WayPoint depositPos12=new WayPoint(new Pose2D(DistanceUnit.INCH, -9, -50, AngleUnit.DEGREES, 90),
-                new Pose2D(DistanceUnit.INCH,  1, 2, AngleUnit.DEGREES, 2));
+                new Pose2D(DistanceUnit.INCH,  4, 4, AngleUnit.DEGREES, 3));
         WayPoint depositPos22=new WayPoint(new Pose2D(DistanceUnit.INCH, -9, -27, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH,  1, 1, AngleUnit.DEGREES, 2));
         WayPoint depositPos22Strafe=new WayPoint(new Pose2D(DistanceUnit.INCH, -5, -27, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH,  1, 1, AngleUnit.DEGREES, 2));
         WayPoint depositPos13=new WayPoint(new Pose2D(DistanceUnit.INCH, -9, -50, AngleUnit.DEGREES, 90),
-                new Pose2D(DistanceUnit.INCH,  1, 2, AngleUnit.DEGREES, 2));
+                new Pose2D(DistanceUnit.INCH,  4, 4, AngleUnit.DEGREES, 3));
         WayPoint depositPos23=new WayPoint(new Pose2D(DistanceUnit.INCH, -9, -27, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH,  1, 1, AngleUnit.DEGREES, 2));
         WayPoint depositPos14=new WayPoint(new Pose2D(DistanceUnit.INCH, -11, -50, AngleUnit.DEGREES, 90),
-                new Pose2D(DistanceUnit.INCH,  1, 2, AngleUnit.DEGREES, 2));
+                new Pose2D(DistanceUnit.INCH,  4, 4, AngleUnit.DEGREES, 3));
         WayPoint depositPos24=new WayPoint(new Pose2D(DistanceUnit.INCH, -11, -27, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH,  1, 1, AngleUnit.DEGREES, 2));
         WayPoint intakeExtend1Pos=new WayPoint(new Pose2D(DistanceUnit.INCH, 22, -37, AngleUnit.DEGREES, 34),
@@ -74,7 +74,7 @@ public class AutoSpecimenFaster extends LinearOpMode {
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint intakeExtend2Pos=new WayPoint(new Pose2D(DistanceUnit.INCH, 34, -37, AngleUnit.DEGREES, 34),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint intakeExtend3Pos=new WayPoint(new Pose2D(DistanceUnit.INCH, 39, -36, AngleUnit.DEGREES, 34),
+        WayPoint intakeExtend3Pos=new WayPoint(new Pose2D(DistanceUnit.INCH, 41, -38, AngleUnit.DEGREES, 34),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint intakeReversePos2=new WayPoint(new Pose2D(DistanceUnit.INCH, 20, -42, AngleUnit.DEGREES, -45),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));

@@ -130,7 +130,7 @@ public class Intake implements Subsystem {
         if (getDistance()<5){
             int[] rgbValues = getRawSensorValues();
             System.out.println(Arrays.toString(rgbValues));
-            int[] tweakedValues = new int[] {rgbValues[0], rgbValues[1]-25, rgbValues[2]-60};
+            int[] tweakedValues = new int[] {rgbValues[0]-20, rgbValues[1]-25, rgbValues[2]-30};
             if (tweakedValues[0]>tweakedValues[1] && tweakedValues[0]>tweakedValues[2]){
                 System.out.println(Arrays.toString(tweakedValues)+" Red");
                 return SampleColor.RED;

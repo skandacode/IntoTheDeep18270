@@ -98,7 +98,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 .onEnter(() -> {
                     intake.retract();
                     intake.setCover(true);
-                    intake.setPower(0.3);
+                    intake.setPower(0.4);
                     outtake.transferPos();
                 })
                 .transitionTimed(0.1)
@@ -110,7 +110,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 .transition(() -> intake.isDone())
 
                 .state(SampleStates.WAIT)
-                .onEnter(() -> intake.setPower(0.2))
+                .onEnter(() -> intake.setPower(0.4))
                 .transitionTimed(0.7)
 
                 .state(SampleStates.CLOSE)
