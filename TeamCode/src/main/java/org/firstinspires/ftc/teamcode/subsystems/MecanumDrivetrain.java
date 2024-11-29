@@ -60,9 +60,9 @@ public class MecanumDrivetrain{
     }
 
     public void setRawPowers(double frontleft, double frontright, double backleft, double backright){
-        double maximum=Math.max(frontleft, frontright);
-        maximum=Math.max(maximum, backleft);
-        maximum=Math.max(maximum, backright);
+        double maximum=Math.max(Math.abs(frontleft), Math.abs(frontright));
+        maximum=Math.max(maximum, Math.abs(backleft));
+        maximum=Math.max(maximum, Math.abs(backright));
         if (maximum>1){
             frontleft=frontleft/maximum;
             frontright=frontright/maximum;
@@ -129,18 +129,16 @@ public class MecanumDrivetrain{
         double y_velo=translationalControllerY.calculate(odometry.getPosition().getY(DistanceUnit.INCH));
         double heading_velo=headingController.calculate(heading);
 
-        if (translationalControllerX.atSetPoint()){
+        if (atTarget()){
             x_velo=0;
-        }
-        if (translationalControllerY.atSetPoint()){
             y_velo=0;
-        }
-        if (headingController.atSetPoint()){
             heading_velo=0;
+            telemetry.addLine("at target");
         }
         telemetry.addData("velocity x", x_velo);
         telemetry.addData("velocity y", y_velo);
         telemetry.addData("velocity heading", heading_velo);
+
         driveFieldCentric(x_velo, y_velo,heading_velo, heading);
     }
     public boolean atTarget(){
@@ -152,5 +150,12 @@ public class MecanumDrivetrain{
     }
     public void calibrateIMU(){
         odometry.recalibrateIMU();
+    }
+    public void telemetryPower(){
+        telemetry.addData("Front left", leftFront.getPrevPower());
+        telemetry.addData("Front Right", rightFront.getPrevPower());
+        telemetry.addData("Back left", leftBack.getPrevPower());
+        telemetry.addData("Back right", rightBack.getPrevPower());
+
     }
 }

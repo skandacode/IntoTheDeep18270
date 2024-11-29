@@ -18,16 +18,20 @@ import org.firstinspires.ftc.teamcode.subsystems.Outtake;
 
 @Config
 @Autonomous
-public class AutoSamples extends LinearOpMode {
+public class AutoSamplesFaster extends LinearOpMode {
     MecanumDrivetrain drive;
     Intake intake;
     Outtake outtake;
     public static boolean yPressed=false;
     public static boolean lbPressed=false;
+    public static Intake.SampleColor allianceColor= Intake.SampleColor.BLUE;
+    public static Intake.SampleColor opposingColor= Intake.SampleColor.RED;
+
     enum autoStates {PREBUCKET1, BUCKET1, SCORE1,
-        PRESAMPLE1, EXTEND1, INTAKE1, PREBUCKET2, BUCKET2, SCORE2,
-        PRESAMPLE2, EXTEND2, INTAKE2, PREBUCKET3, BUCKET3, SCORE3,
-        PRESAMPLE3, EXTEND3, INTAKE3, PREBUCKET4, BUCKET4, SCORE4,
+        EXTEND1, INTAKE1, PREBUCKET2, BUCKET2, SCORE2,
+        EXTEND2, INTAKE2, PREBUCKET3, BUCKET3, SCORE3,
+        EXTEND3, INTAKE3, PREBUCKET4, BUCKET4, SCORE4,
+        PRESUB, SUB, INTAKESUB, RETRACTSUB, TRYAGAIN, INTAKESUBSTRAFE, EJECT, PREBUCKETSUB, PREBUCKET5, BUCKET5, SCORE5,
         PREPARK, LIFTOUTTAKE, PARK, TOUCHBAR
     }
 
@@ -41,25 +45,25 @@ public class AutoSamples extends LinearOpMode {
 
         WayPoint bucketPos1=new WayPoint(new Pose2D(DistanceUnit.INCH, -48, -52, AngleUnit.DEGREES, 45),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint bucketPos2=new WayPoint(new Pose2D(DistanceUnit.INCH, -51, -55, AngleUnit.DEGREES, 45),
+        WayPoint bucketPos2=new WayPoint(new Pose2D(DistanceUnit.INCH, -52, -55, AngleUnit.DEGREES, 45),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint prepark=new WayPoint(new Pose2D(DistanceUnit.INCH, -34, -8, AngleUnit.DEGREES, 180),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint park=new WayPoint(new Pose2D(DistanceUnit.INCH, -20, -16, AngleUnit.DEGREES, 180),
+        WayPoint park=new WayPoint(new Pose2D(DistanceUnit.INCH, -20, -12, AngleUnit.DEGREES, 180),
+                new Pose2D(DistanceUnit.INCH, 3, 3, AngleUnit.DEGREES, 2));
+        WayPoint presub=new WayPoint(new Pose2D(DistanceUnit.INCH, -36, -8, AngleUnit.DEGREES, 0),
+                new Pose2D(DistanceUnit.INCH, 3, 3, AngleUnit.DEGREES, 2));
+        WayPoint sub=new WayPoint(new Pose2D(DistanceUnit.INCH, -16, -12, AngleUnit.DEGREES, 0),
+                new Pose2D(DistanceUnit.INCH, 3, 3, AngleUnit.DEGREES, 2));
+        WayPoint subStrafe=new WayPoint(new Pose2D(DistanceUnit.INCH, -16, 12, AngleUnit.DEGREES, 0),
                 new Pose2D(DistanceUnit.INCH, 3, 3, AngleUnit.DEGREES, 2));
 
 
-        WayPoint presample1=new WayPoint(new Pose2D(DistanceUnit.INCH, -47, -56.5, AngleUnit.DEGREES, 90),
+        WayPoint sample1=new WayPoint(new Pose2D(DistanceUnit.INCH, -48, -50, AngleUnit.DEGREES, 89),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
-        WayPoint sample1=new WayPoint(new Pose2D(DistanceUnit.INCH, -47, -50, AngleUnit.DEGREES, 89),
+        WayPoint sample2=new WayPoint(new Pose2D(DistanceUnit.INCH, -51, -50, AngleUnit.DEGREES, 101),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
-        WayPoint presample2=new WayPoint(new Pose2D(DistanceUnit.INCH, -53, -56.5, AngleUnit.DEGREES, 95),
-                new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
-        WayPoint sample2=new WayPoint(new Pose2D(DistanceUnit.INCH, -55, -50, AngleUnit.DEGREES, 95),
-                new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
-        WayPoint presample3=new WayPoint(new Pose2D(DistanceUnit.INCH, -41.5, -41, AngleUnit.DEGREES, 155),
-                new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
-        WayPoint sample3=new WayPoint(new Pose2D(DistanceUnit.INCH, -46, -36, AngleUnit.DEGREES, 160),
+        WayPoint sample3=new WayPoint(new Pose2D(DistanceUnit.INCH, -43, -36, AngleUnit.DEGREES, 160),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
 
 
@@ -73,38 +77,47 @@ public class AutoSamples extends LinearOpMode {
                 .state(TeleopSomewhatAuto.SampleStates.EXTEND)
                 .onEnter(()->{
                     intake.setExtended(true);
+                    intake.intakePosition();
+                    intake.setPower(1);
                     yPressed=false;
                 })
                 .transitionTimed(0.1)
                 .state(TeleopSomewhatAuto.SampleStates.DROP)
                 .onEnter(() -> {
                     intake.intakePosition();
-                    intake.setPower(0.8);
+                    intake.setPower(1);
                 })
-                .transition(()->intake.getDistance()<4)
+                .transition(()->intake.getDistance()<5)
                 .transitionTimed(3)
                 .state(TeleopSomewhatAuto.SampleStates.RETRACT)
                 .onEnter(() -> {
                     intake.retract();
                     intake.setCover(true);
-                    intake.setPower(0.7);
+                    intake.setPower(0.3);
                     outtake.transferPos();
                 })
                 .transitionTimed(0.2)
+
                 .state(TeleopSomewhatAuto.SampleStates.OPENCOVER)
-                .onEnter(() -> intake.setCover(false))
+                .onEnter(() -> {
+                    intake.setCover(false);
+                    intake.setPower(0);
+                })
                 .transition(() -> intake.isDone())
 
                 .state(TeleopSomewhatAuto.SampleStates.WAIT)
                 .onEnter(() -> intake.setPower(0.4))
-                .transitionTimed(0.7)
+                .transitionTimed(0.5)
 
                 .state(TeleopSomewhatAuto.SampleStates.CLOSE)
                 .onEnter(() -> outtake.closeClaw())
                 .transitionTimed(0.2)
 
                 .state(TeleopSomewhatAuto.SampleStates.LIFT)
-                .onEnter(() -> outtake.setTargetPos(2950))
+                .onEnter(() -> {
+                    outtake.setTargetPos(2950);
+                    intake.setPower(-0.2);
+                })
                 .transitionTimed(0.2)
 
                 .state(TeleopSomewhatAuto.SampleStates.WRIST).onEnter(() -> {
@@ -117,7 +130,7 @@ public class AutoSamples extends LinearOpMode {
                 .state(TeleopSomewhatAuto.SampleStates.OPEN).onEnter(() -> {
                     outtake.openClaw();
                     lbPressed=false;
-                }).transitionTimed(2)
+                }).transitionTimed(1.7)
 
                 .state(TeleopSomewhatAuto.SampleStates.LOWERLIFT).onEnter(() -> {
                     outtake.setTargetPos(0);
@@ -133,18 +146,17 @@ public class AutoSamples extends LinearOpMode {
                 .state(autoStates.SCORE1)
                 .onEnter(()->lbPressed=true)
                 .transitionTimed(0.7)
-                .state(autoStates.PRESAMPLE1)
-                .onEnter(()->drive.setTarget(presample1))
+
+
+                .state(autoStates.INTAKE1)
+                .onEnter(()->drive.setTarget(sample1))
                 .transition(()->drive.atTarget())
                 .state(autoStates.EXTEND1)
                 .onEnter(()->yPressed=true)
-                .transitionTimed(1.3)
-                .state(autoStates.INTAKE1)
-                .onEnter(()->drive.setTarget(sample1))
-                .transition(()->sampleMachine.getState()!= TeleopSomewhatAuto.SampleStates.DROP && sampleMachine.getState() != TeleopSomewhatAuto.SampleStates.EXTEND)
+                .transition(()->sampleMachine.getState()== TeleopSomewhatAuto.SampleStates.RETRACT)
                 .state(autoStates.PREBUCKET2)
                 .onEnter(()->drive.setTarget(bucketPos1))
-                .transition(()->drive.atTarget() && outtake.getLiftPos()>2850)
+                .transition(()-> drive.atTarget() && outtake.getLiftPos()>2850)
                 .state(autoStates.BUCKET2)
                 .onEnter(()->drive.setTarget(bucketPos2))
                 .transition(()->drive.atTarget())
@@ -152,19 +164,16 @@ public class AutoSamples extends LinearOpMode {
                 .onEnter(()->lbPressed=true)
                 .transitionTimed(0.7)
 
-                .state(autoStates.PRESAMPLE2)
-                .onEnter(()->drive.setTarget(presample2))
-                .transition(()-> drive.atTarget())
 
-                .state(autoStates.EXTEND2)
-                .onEnter(()->yPressed=true)
-                .transitionTimed(1.3)
                 .state(autoStates.INTAKE2)
                 .onEnter(()->drive.setTarget(sample2))
-                .transition(()->sampleMachine.getState()!= TeleopSomewhatAuto.SampleStates.DROP && sampleMachine.getState() != TeleopSomewhatAuto.SampleStates.EXTEND)
+                .transition(()->drive.atTarget())
+                .state(autoStates.EXTEND2)
+                .onEnter(()->yPressed=true)
+                .transition(()->sampleMachine.getState()== TeleopSomewhatAuto.SampleStates.RETRACT)
                 .state(autoStates.PREBUCKET3)
                 .onEnter(()->drive.setTarget(bucketPos1))
-                .transition(()->drive.atTarget() && outtake.getLiftPos()>2850)
+                .transition(()-> drive.atTarget() && outtake.getLiftPos()>2850)
                 .state(autoStates.BUCKET3)
                 .onEnter(()->drive.setTarget(bucketPos2))
                 .transition(()->drive.atTarget())
@@ -172,28 +181,92 @@ public class AutoSamples extends LinearOpMode {
                 .onEnter(()->lbPressed=true)
                 .transitionTimed(0.7)
 
-                .state(autoStates.PRESAMPLE3)
-                .onEnter(()->drive.setTarget(presample3))
-                .transition(()-> drive.atTarget())
 
-                .state(autoStates.EXTEND3)
-                .onEnter(()->yPressed=true)
-                .transitionTimed(1.3)
                 .state(autoStates.INTAKE3)
                 .onEnter(()->drive.setTarget(sample3))
-                .transition(()->sampleMachine.getState()!= TeleopSomewhatAuto.SampleStates.DROP && sampleMachine.getState() != TeleopSomewhatAuto.SampleStates.EXTEND)
+                .transition(()->drive.atTarget())
+                .state(autoStates.EXTEND3)
+                .onEnter(()->yPressed=true)
+                .transition(()->sampleMachine.getState()== TeleopSomewhatAuto.SampleStates.RETRACT)
                 .state(autoStates.PREBUCKET4)
                 .onEnter(()->drive.setTarget(bucketPos1))
-                .transition(()->drive.atTarget() && outtake.getLiftPos()>2850)
+                .transition(()-> drive.atTarget() && outtake.getLiftPos()>2850)
                 .state(autoStates.BUCKET4)
                 .onEnter(()->drive.setTarget(bucketPos2))
                 .transition(()->drive.atTarget())
                 .state(autoStates.SCORE4)
                 .onEnter(()->lbPressed=true)
                 .transitionTimed(0.7)
+                .state(autoStates.PRESUB)
+                .onEnter(()->drive.setTarget(presub))
+                .transition(()-> drive.atTarget())
+                .state(autoStates.SUB)
+                .onEnter(()->drive.setTarget(sub))
+                .transitionTimed(0.9)
+                .state(autoStates.INTAKESUB)
+                .onEnter(()->{
+                    intake.setExtended(true);
+                    intake.intakePosition();
+                })
+                .transitionTimed(1.3, autoStates.RETRACTSUB)
+                .transition(()->intake.getColor()== Intake.SampleColor.YELLOW || intake.getColor()==allianceColor, autoStates.PREBUCKETSUB)
+                .transition(()->intake.getColor()==opposingColor, autoStates.EJECT)
+
+                .state(autoStates.RETRACTSUB)
+                .onEnter(()->{
+                    intake.setExtended(false);
+                    intake.setPower(-0.5);
+                    intake.retract();
+                })
+                .transitionTimed(0.5, autoStates.TRYAGAIN)
+
+                .state(autoStates.TRYAGAIN)
+                .onEnter(()->{
+                    intake.setExtended(true);
+                    intake.setPower(1);
+                    intake.intakePosition();
+                })
+                .transitionTimed(1, autoStates.INTAKESUBSTRAFE)
+                .transition(()->intake.getColor()== Intake.SampleColor.YELLOW || intake.getColor()==allianceColor, autoStates.PREBUCKETSUB)
+                .transition(()->intake.getColor()==opposingColor, autoStates.EJECT)
+
+                .state(autoStates.INTAKESUBSTRAFE)
+                .onEnter(()->drive.setTarget(subStrafe))
+                .transitionTimed(3, autoStates.PREPARK)
+                .transition(()->intake.getColor()== Intake.SampleColor.YELLOW || intake.getColor()==allianceColor, autoStates.PREBUCKETSUB)
+                .transition(()->intake.getColor()==opposingColor, autoStates.EJECT)
+
+                .state(autoStates.EJECT, true)
+                .onEnter(()->{
+                    intake.eject();
+                    intake.setCover(false);
+                })
+                .onExit(()->intake.retract())
+                .transitionTimed(1.5, autoStates.PREPARK)
+                .state(autoStates.PREBUCKETSUB)
+                .onEnter(()->{
+                    sampleMachine.setState(TeleopSomewhatAuto.SampleStates.DROP);
+                    intake.setCover(true);
+                    drive.setTarget(presub);
+                })
+                .transitionTimed(0.6)
+                .state(autoStates.PREBUCKET5)
+                .onEnter(()->drive.setTarget(bucketPos1))
+                .transition(()->drive.atTarget() && outtake.getLiftPos()>2850)
+
+                .state(autoStates.BUCKET5)
+                .onEnter(()->drive.setTarget(bucketPos2))
+                .transition(()->drive.atTarget())
+
+                .state(autoStates.SCORE5)
+                .onEnter(()->lbPressed=true)
+                .transitionTimed(0.7)
+
                 .state(autoStates.PREPARK)
                 .onEnter(()-> {
                     drive.setTarget(prepark);
+                    intake.retract();
+                    intake.setPower(0);
                 })
                 .transitionTimed(0.5)
                 .state(autoStates.LIFTOUTTAKE)
@@ -221,13 +294,23 @@ public class AutoSamples extends LinearOpMode {
         while (opModeInInit()){
             drive.update();
             telemetry.addData("Velocity", " "+drive.odometry.getVelocity().getX(DistanceUnit.INCH)+" "+drive.odometry.getVelocity().getY(DistanceUnit.INCH)+" "+drive.odometry.getVelocity().getHeading(AngleUnit.DEGREES));
+
             telemetry.update();
             if (gamepad1.touchpad){
                 drive.calibrateIMU();
             }
+            if (gamepad1.a){
+                allianceColor= Intake.SampleColor.BLUE;
+                opposingColor= Intake.SampleColor.RED;
+            }
+            if (gamepad1.b){
+                allianceColor= Intake.SampleColor.RED;
+                opposingColor= Intake.SampleColor.BLUE;
+            }
         }
 
         waitForStart();
+        long startTime=System.nanoTime();
         intake.retract();
         drive.setTarget(startPoint);
         drive.setPosition(startPoint.getPosition());
@@ -248,6 +331,9 @@ public class AutoSamples extends LinearOpMode {
             telemetry.addData("Ms per loop", (currLoop - prevLoop) / 1000000);
             prevLoop = currLoop;
             telemetry.update();
+            if (autoMachine.getState()==autoStates.PARK){
+                System.out.println(System.nanoTime()-startTime);
+            }
         }
     }
 }

@@ -22,6 +22,7 @@ public class CachedMotorEx extends MotorEx {
         super(hMap, id, cpr, rpm);
     }
     public void setPower(double p){
+
         if (p==prevPower){
             return;
         }
@@ -35,5 +36,8 @@ public class CachedMotorEx extends MotorEx {
     }
     public double getCurrent(){
         return super.motorEx.getCurrent(CurrentUnit.AMPS);
+    }
+    public double getPrevPower(){
+        return prevPower;
     }
 }

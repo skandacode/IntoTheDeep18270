@@ -59,7 +59,7 @@ public class Outtake implements Subsystem{
 
 
     public void closeClaw(){
-        claw.setPosition(0.99);
+        claw.setPosition(1);
     }
 
     public void setFlipPos(double pos){
@@ -106,14 +106,14 @@ public class Outtake implements Subsystem{
     public void specimenHoldPos(){
         setFlipPos(0.8);
         closeClaw();
-        setWristPos(0.5);
-        setTargetPos(1350);
+        setWristPos(0.61);
+        setTargetPos(1200);
     }
     public void specimenScorePos(){
         setFlipPos(0.6);
-        setWristPos(0.5);
+        setWristPos(0.65);
         closeClaw();
-        setTargetPos(1600);
+        setTargetPos(1750);
     }
 
     public int getTargetPos() {

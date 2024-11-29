@@ -75,7 +75,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                         }
                     }
                 })
-                .transition(()->intake.getDistance()<4.5)
+                .transition(()->intake.getDistance()<5)
                 .state(SampleStates.SENSORWAIT)
                 .onEnter(()->intake.intakePosition())
                 .transitionTimed(0.1)
@@ -114,12 +114,16 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 .transitionTimed(0.7)
 
                 .state(SampleStates.CLOSE)
-                .onEnter(() -> outtake.closeClaw())
+                .onEnter(() -> {
+                    outtake.closeClaw();
+                    intake.setPower(0.2);
+                })
                 .transitionTimed(0.2)
 
                 .state(SampleStates.LIFT)
                 .onEnter(() -> {
                     outtake.setTargetPos(targetLiftPosSample);
+                    intake.setPower(0);
                 })
                 .loop(() -> {
                     if (gamepad1.left_trigger > 0.3) {
@@ -130,7 +134,6 @@ public class TeleopSomewhatAuto extends LinearOpMode {
 
                 .state(SampleStates.WRIST).onEnter(() -> {
                     outtake.scorePos();
-                    intake.setPower(0);
                     intake.setPower(-0.5);
                 }).loop(() -> {
                     if (gamepad1.left_trigger > 0.3) {
@@ -242,9 +245,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
             if (gamepad1.touchpad && sampleMachine.getState()==SampleStates.IDLE && specimenScorer.getState()==SpecimenScoreStates.IDLE){
                 intake.setPower(0.5);
                 intake.setExtendo(0.3);
-                sleep(200);
-                outtake.closeClaw();
-                sampleMachine.setState(SampleStates.CLOSE);
+                sampleMachine.setState(SampleStates.WAIT);
             }
             if (gamepad1.left_stick_button){
                 hanging=true;
@@ -271,8 +272,14 @@ public class TeleopSomewhatAuto extends LinearOpMode {
             if (!pullingdown){
                 outtake.update();
             }
+            if (gamepad1.share){
+                telemetry.addData("intake distance", intake.getDistance());
+                telemetry.addData("intake color", intake.getColor());
+            }
+            telemetry.addData("gamepad strafe", gamepad1.left_stick_x);
             telemetry.addData("target color", targetColor.toString());
             telemetry.addData("alliance color", allianceColor.toString());
+            telemetry.addData("Intake speed", intake.getIntakeSpeed());
 
             telemetry.addData("State sample", sampleMachine.getState());
             telemetry.addData("Specimen sample", specimenScorer.getState());
@@ -284,6 +291,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
 
             telemetry.addData("Outtake Pos", outtake.getLiftPos());
             telemetry.addData("Extendo Pos", intake.getExtendoMotorPos());
+            drive.telemetryPower();
             long currLoop = System.nanoTime();
             telemetry.addData("Ms per loop", (currLoop - prevLoop) / 1000000);
             prevLoop = currLoop;
