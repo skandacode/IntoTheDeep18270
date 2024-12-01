@@ -103,7 +103,7 @@ public class Intake implements Subsystem {
     public void intakePosition(){
         setExtended(true);
         setCover(true);
-        setFlip(0.32);
+        setFlip(0.31);
         setPower(1);
     }
     public void eject(){

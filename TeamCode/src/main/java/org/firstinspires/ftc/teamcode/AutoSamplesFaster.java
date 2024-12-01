@@ -45,7 +45,7 @@ public class AutoSamplesFaster extends LinearOpMode {
 
         WayPoint bucketPos1=new WayPoint(new Pose2D(DistanceUnit.INCH, -48, -52, AngleUnit.DEGREES, 45),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint bucketPos2=new WayPoint(new Pose2D(DistanceUnit.INCH, -52, -55, AngleUnit.DEGREES, 45),
+        WayPoint bucketPos2=new WayPoint(new Pose2D(DistanceUnit.INCH, -52, -56, AngleUnit.DEGREES, 45),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint prepark=new WayPoint(new Pose2D(DistanceUnit.INCH, -34, -8, AngleUnit.DEGREES, 180),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
@@ -93,7 +93,7 @@ public class AutoSamplesFaster extends LinearOpMode {
                 .onEnter(() -> {
                     intake.retract();
                     intake.setCover(true);
-                    intake.setPower(0.3);
+                    intake.setPower(0.6);
                     outtake.transferPos();
                 })
                 .transitionTimed(0.2)
@@ -101,7 +101,7 @@ public class AutoSamplesFaster extends LinearOpMode {
                 .state(TeleopSomewhatAuto.SampleStates.OPENCOVER)
                 .onEnter(() -> {
                     intake.setCover(false);
-                    intake.setPower(0);
+                    intake.setPower(0.1);
                 })
                 .transition(() -> intake.isDone())
 
@@ -116,14 +116,14 @@ public class AutoSamplesFaster extends LinearOpMode {
                 .state(TeleopSomewhatAuto.SampleStates.LIFT)
                 .onEnter(() -> {
                     outtake.setTargetPos(2950);
-                    intake.setPower(-0.2);
+                    intake.setPower(-0.5);
                 })
                 .transitionTimed(0.2)
 
                 .state(TeleopSomewhatAuto.SampleStates.WRIST).onEnter(() -> {
                     outtake.scorePos();
                     intake.setPower(0);
-                    intake.setPower(-0.2);
+                    intake.setPower(-0.5);
                 })
                 .transition(() -> lbPressed)
 
@@ -232,7 +232,7 @@ public class AutoSamplesFaster extends LinearOpMode {
 
                 .state(autoStates.INTAKESUBSTRAFE)
                 .onEnter(()->drive.setTarget(subStrafe))
-                .transitionTimed(3, autoStates.PREPARK)
+                .transitionTimed(2, autoStates.PREPARK)
                 .transition(()->intake.getColor()== Intake.SampleColor.YELLOW || intake.getColor()==allianceColor, autoStates.PREBUCKETSUB)
                 .transition(()->intake.getColor()==opposingColor, autoStates.EJECT)
 
@@ -241,8 +241,7 @@ public class AutoSamplesFaster extends LinearOpMode {
                     intake.eject();
                     intake.setCover(false);
                 })
-                .onExit(()->intake.retract())
-                .transitionTimed(1.5, autoStates.PREPARK)
+                .transitionTimed(0.7, autoStates.PREPARK)
                 .state(autoStates.PREBUCKETSUB)
                 .onEnter(()->{
                     sampleMachine.setState(TeleopSomewhatAuto.SampleStates.DROP);
@@ -302,16 +301,19 @@ public class AutoSamplesFaster extends LinearOpMode {
             if (gamepad1.a){
                 allianceColor= Intake.SampleColor.BLUE;
                 opposingColor= Intake.SampleColor.RED;
+                gamepad1.setLedColor(0, 0, 1, 1000);
             }
             if (gamepad1.b){
                 allianceColor= Intake.SampleColor.RED;
                 opposingColor= Intake.SampleColor.BLUE;
+                gamepad1.setLedColor(1, 0, 0, 1000);
             }
         }
 
         waitForStart();
         long startTime=System.nanoTime();
         intake.retract();
+        outtake.scorePos();
         drive.setTarget(startPoint);
         drive.setPosition(startPoint.getPosition());
         sampleMachine.start();

@@ -105,7 +105,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 .state(SampleStates.OPENCOVER)
                 .onEnter(() -> {
                     intake.setCover(false);
-                    intake.setPower(0);
+                    intake.setPower(0.1);
                 })
                 .transition(() -> intake.isDone())
 
@@ -116,7 +116,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 .state(SampleStates.CLOSE)
                 .onEnter(() -> {
                     outtake.closeClaw();
-                    intake.setPower(0.2);
+                    intake.setPower(0.4);
                 })
                 .transitionTimed(0.2)
 
@@ -181,7 +181,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 .transitionTimed(0.3)
                 .state(SpecimenScoreStates.OPENCLAW)
                 .onEnter(() -> outtake.openClaw())
-                .transitionTimed(0.2)
+                .transitionTimed(1)
                 .state(SpecimenScoreStates.RETRACT)
                 .onEnter(() -> outtake.transferPos())
                 .transition(() -> (outtake.atTarget() || gamepad1.dpad_up), SpecimenScoreStates.IDLE)

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.sfdev.assembly.state.StateMachine;
@@ -15,6 +16,8 @@ import org.firstinspires.ftc.teamcode.pathing.WayPoint;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
+
+import java.util.List;
 
 @Config
 @Autonomous
@@ -39,6 +42,13 @@ public class AutoSpecimenFaster extends LinearOpMode {
     @Override
 
     public void runOpMode() throws InterruptedException {
+        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
+        for (LynxModule hub : allHubs) {
+            hub.clearBulkCache();
+        }
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry= new MultipleTelemetry(telemetry, dashboard.getTelemetry());
         drive=new MecanumDrivetrain(hardwareMap, telemetry, dashboard);
@@ -68,13 +78,13 @@ public class AutoSpecimenFaster extends LinearOpMode {
                 new Pose2D(DistanceUnit.INCH,  4, 4, AngleUnit.DEGREES, 3));
         WayPoint depositPos24=new WayPoint(new Pose2D(DistanceUnit.INCH, -11, -27, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH,  1, 1, AngleUnit.DEGREES, 2));
-        WayPoint intakeExtend1Pos=new WayPoint(new Pose2D(DistanceUnit.INCH, 22, -37, AngleUnit.DEGREES, 34),
+        WayPoint intakeExtend1Pos=new WayPoint(new Pose2D(DistanceUnit.INCH, 22, -38, AngleUnit.DEGREES, 34),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 1));
         WayPoint intakeReversePos1=new WayPoint(new Pose2D(DistanceUnit.INCH, 20, -42, AngleUnit.DEGREES, -45),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint intakeExtend2Pos=new WayPoint(new Pose2D(DistanceUnit.INCH, 34, -37, AngleUnit.DEGREES, 34),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint intakeExtend3Pos=new WayPoint(new Pose2D(DistanceUnit.INCH, 41, -38, AngleUnit.DEGREES, 34),
+        WayPoint intakeExtend3Pos=new WayPoint(new Pose2D(DistanceUnit.INCH, 41, -36, AngleUnit.DEGREES, 30),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint intakeReversePos2=new WayPoint(new Pose2D(DistanceUnit.INCH, 20, -42, AngleUnit.DEGREES, -45),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
@@ -84,11 +94,11 @@ public class AutoSpecimenFaster extends LinearOpMode {
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint specimenGrab=new WayPoint(new Pose2D(DistanceUnit.INCH, 28, -51, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint specimenGrabForward=new WayPoint(new Pose2D(DistanceUnit.INCH, 28, -54, AngleUnit.DEGREES, 90),
+        WayPoint specimenGrabForward=new WayPoint(new Pose2D(DistanceUnit.INCH, 28, -56, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint specimenGrab2=new WayPoint(new Pose2D(DistanceUnit.INCH, 28, -51, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint specimenGrabForward2=new WayPoint(new Pose2D(DistanceUnit.INCH, 28, -54, AngleUnit.DEGREES, 90),
+        WayPoint specimenGrabForward2=new WayPoint(new Pose2D(DistanceUnit.INCH, 28, -55, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint park=new WayPoint(new Pose2D(DistanceUnit.INCH, 45, -54, AngleUnit.DEGREES, 0),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
@@ -195,7 +205,7 @@ public class AutoSpecimenFaster extends LinearOpMode {
                 .transitionTimed(0.8)
                 .state(autoStates.intakeReversePos3)
                 .onEnter(()->drive.setTarget(intakeReversePos1))
-                .transitionTimed(0.6)
+                .transitionTimed(0.7)
                 .state(autoStates.intakeReverse3)
                 .onEnter(()->intake.setPower(-1))
                 .transitionTimed(0.5)
@@ -242,7 +252,7 @@ public class AutoSpecimenFaster extends LinearOpMode {
                 .transitionTimed(0.8)
                 .state(autoStates.depositPos2f2Strafe)
                 .onEnter(()->drive.setTarget(depositPos22Strafe))
-                .transitionTimed(0.9)
+                .transitionTimed(0.6)
                 .state(autoStates.score2)
                 .onEnter(()->scoredPressed=true)
                 .transitionTimed(0.8)
@@ -298,6 +308,9 @@ public class AutoSpecimenFaster extends LinearOpMode {
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 0.5));
 
         waitForStart();
+        for (LynxModule hub : allHubs) {
+            hub.clearBulkCache();
+        }
         intake.retract();
         drive.setTarget(startPoint);
         drive.setPosition(startPoint.getPosition());
@@ -307,6 +320,9 @@ public class AutoSpecimenFaster extends LinearOpMode {
         outtake.resetEncoder();
         long prevLoop=System.nanoTime();
         while (opModeIsActive()){
+            for (LynxModule hub : allHubs) {
+                hub.clearBulkCache();
+            }
             autoMachine.update();
             specimenMachine.update();
             drive.update();

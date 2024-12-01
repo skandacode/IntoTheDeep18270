@@ -94,6 +94,10 @@ public class MecanumDrivetrain{
         setWeightedPowers(x, y, turnPower);
     }
     public void setTarget(WayPoint target){
+        translationalControllerX.reset();
+        translationalControllerY.reset();
+        headingController.reset();
+
         translationalControllerX.setSetPoint(target.getPosition().getX(DistanceUnit.INCH));
         translationalControllerY.setSetPoint(target.getPosition().getY(DistanceUnit.INCH));
         headingController.setSetPoint(target.getPosition().getHeading(AngleUnit.RADIANS));
@@ -118,6 +122,7 @@ public class MecanumDrivetrain{
     }
     public void updatePIDS(){
         double heading=odometry.getPosition().getHeading(AngleUnit.RADIANS);
+        telemetry.addData("before normalizing PID heading", heading);
         while (Math.abs(heading-headingController.getSetPoint())>Math.PI){
             if (heading<headingController.getSetPoint()){
                 heading=heading+2*Math.PI;
@@ -125,9 +130,15 @@ public class MecanumDrivetrain{
                 heading=heading-2*Math.PI;
             }
         }
-        double x_velo=translationalControllerX.calculate(odometry.getPosition().getX(DistanceUnit.INCH));
-        double y_velo=translationalControllerY.calculate(odometry.getPosition().getY(DistanceUnit.INCH));
+        Pose2D position = odometry.getPosition();
+        telemetry.addData("Before calculating PID odometry", position.getX(DistanceUnit.INCH)+" "+position.getY(DistanceUnit.INCH)+" "+position.getHeading(AngleUnit.DEGREES));
+        telemetry.addData("after normalizing PID heading", heading);
+        double x_velo=translationalControllerX.calculate(position.getX(DistanceUnit.INCH));
+        double y_velo=translationalControllerY.calculate(position.getY(DistanceUnit.INCH));
         double heading_velo=headingController.calculate(heading);
+        telemetry.addData("velocity x before check", x_velo);
+        telemetry.addData("velocity y before check", y_velo);
+        telemetry.addData("velocity heading before check", heading_velo);
 
         if (atTarget()){
             x_velo=0;
