@@ -92,13 +92,13 @@ public class AutoSpecimenFaster extends LinearOpMode {
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint intakePreExtend2=new WayPoint(new Pose2D(DistanceUnit.INCH, 22, -42, AngleUnit.DEGREES, 30),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint specimenGrab=new WayPoint(new Pose2D(DistanceUnit.INCH, 28, -51, AngleUnit.DEGREES, 90),
+        WayPoint specimenGrab=new WayPoint(new Pose2D(DistanceUnit.INCH, 30, -51, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint specimenGrabForward=new WayPoint(new Pose2D(DistanceUnit.INCH, 28, -56, AngleUnit.DEGREES, 90),
+        WayPoint specimenGrabForward=new WayPoint(new Pose2D(DistanceUnit.INCH, 30, -56, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint specimenGrab2=new WayPoint(new Pose2D(DistanceUnit.INCH, 28, -51, AngleUnit.DEGREES, 90),
+        WayPoint specimenGrab2=new WayPoint(new Pose2D(DistanceUnit.INCH, 30, -51, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint specimenGrabForward2=new WayPoint(new Pose2D(DistanceUnit.INCH, 28, -55, AngleUnit.DEGREES, 90),
+        WayPoint specimenGrabForward2=new WayPoint(new Pose2D(DistanceUnit.INCH, 30, -55, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint park=new WayPoint(new Pose2D(DistanceUnit.INCH, 45, -54, AngleUnit.DEGREES, 0),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
@@ -190,7 +190,7 @@ public class AutoSpecimenFaster extends LinearOpMode {
                 .transitionTimed(0.6)
                 .state(autoStates.intakeReversePos2)
                 .onEnter(()->drive.setTarget(intakeReversePos1))
-                .transitionTimed(0.6)
+                .transitionTimed(0.75)
                 .state(autoStates.intakeReverse2)
                 .onEnter(()->intake.setPower(-1))
                 .transitionTimed(0.4)
