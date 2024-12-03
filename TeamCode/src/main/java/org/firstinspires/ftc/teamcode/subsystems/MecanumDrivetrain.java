@@ -54,8 +54,9 @@ public class MecanumDrivetrain{
         rightBack.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
 
         odometry = hwMap.get(GoBildaPinpointDriver.class,"odo");
-        odometry.setOffsets(72.0, -168.0);
-        odometry.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        odometry.setOffsets(-190.0, -168.0);
+        odometry.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
+        odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         odometry.recalibrateIMU();
     }
 
@@ -113,7 +114,7 @@ public class MecanumDrivetrain{
 
         TelemetryPacket packet = new TelemetryPacket();
         packet.fieldOverlay().setFill("blue")
-                .strokeCircle(position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH), 5)
+                .strokeCircle(position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH), 8.5)
                 .strokeLine(position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH),
                         (Math.cos(position.getHeading(AngleUnit.RADIANS))*5)+ position.getX(DistanceUnit.INCH),
                         (Math.sin(position.getHeading(AngleUnit.RADIANS))*5)+ position.getY(DistanceUnit.INCH));

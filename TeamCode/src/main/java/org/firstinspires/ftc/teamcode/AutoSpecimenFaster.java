@@ -307,13 +307,15 @@ public class AutoSpecimenFaster extends LinearOpMode {
         WayPoint startPoint=new WayPoint(new Pose2D(DistanceUnit.INCH, 2, -60.5, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 0.5));
 
+        drive.setTarget(startPoint);
+        drive.setPosition(startPoint.getPosition());
+
+
         waitForStart();
         for (LynxModule hub : allHubs) {
             hub.clearBulkCache();
         }
         intake.retract();
-        drive.setTarget(startPoint);
-        drive.setPosition(startPoint.getPosition());
         specimenMachine.start();
         autoMachine.start();
         specimenMachine.setState(TeleopSomewhatAuto.SpecimenScoreStates.CLOSE_CLAW);

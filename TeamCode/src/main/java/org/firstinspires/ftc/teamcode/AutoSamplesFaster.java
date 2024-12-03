@@ -47,6 +47,8 @@ public class AutoSamplesFaster extends LinearOpMode {
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint bucketPos2=new WayPoint(new Pose2D(DistanceUnit.INCH, -52, -56, AngleUnit.DEGREES, 45),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
+        WayPoint bucketPos25th=new WayPoint(new Pose2D(DistanceUnit.INCH, -54, -56, AngleUnit.DEGREES, 45),
+                new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint prepark=new WayPoint(new Pose2D(DistanceUnit.INCH, -34, -8, AngleUnit.DEGREES, 180),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint park=new WayPoint(new Pose2D(DistanceUnit.INCH, -20, -12, AngleUnit.DEGREES, 180),
@@ -59,11 +61,11 @@ public class AutoSamplesFaster extends LinearOpMode {
                 new Pose2D(DistanceUnit.INCH, 3, 3, AngleUnit.DEGREES, 2));
 
 
-        WayPoint sample1=new WayPoint(new Pose2D(DistanceUnit.INCH, -48, -50, AngleUnit.DEGREES, 89),
+        WayPoint sample1=new WayPoint(new Pose2D(DistanceUnit.INCH, -46, -50, AngleUnit.DEGREES, 89),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
-        WayPoint sample2=new WayPoint(new Pose2D(DistanceUnit.INCH, -51, -50, AngleUnit.DEGREES, 101),
+        WayPoint sample2=new WayPoint(new Pose2D(DistanceUnit.INCH, -51, -49, AngleUnit.DEGREES, 101),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
-        WayPoint sample3=new WayPoint(new Pose2D(DistanceUnit.INCH, -43, -36, AngleUnit.DEGREES, 160),
+        WayPoint sample3=new WayPoint(new Pose2D(DistanceUnit.INCH, -42, -34, AngleUnit.DEGREES, 160),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
 
 
@@ -208,7 +210,7 @@ public class AutoSamplesFaster extends LinearOpMode {
                     intake.setExtended(true);
                     intake.intakePosition();
                 })
-                .transitionTimed(1.3, autoStates.RETRACTSUB)
+                .transitionTimed(0.9, autoStates.RETRACTSUB)
                 .transition(()->intake.getColor()== Intake.SampleColor.YELLOW || intake.getColor()==allianceColor, autoStates.PREBUCKETSUB)
                 .transition(()->intake.getColor()==opposingColor, autoStates.EJECT)
 
@@ -254,7 +256,7 @@ public class AutoSamplesFaster extends LinearOpMode {
                 .transition(()->drive.atTarget() && outtake.getLiftPos()>2850)
 
                 .state(autoStates.BUCKET5)
-                .onEnter(()->drive.setTarget(bucketPos2))
+                .onEnter(()->drive.setTarget(bucketPos25th))
                 .transition(()->drive.atTarget())
 
                 .state(autoStates.SCORE5)
@@ -289,6 +291,9 @@ public class AutoSamplesFaster extends LinearOpMode {
 
         WayPoint startPoint=new WayPoint(new Pose2D(DistanceUnit.INCH, -36, -63, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 0.5));
+
+        drive.setTarget(startPoint);
+        drive.setPosition(startPoint.getPosition());
 
         while (opModeInInit()){
             drive.update();
