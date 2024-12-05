@@ -80,8 +80,8 @@ public class MecanumDrivetrain implements Subsystem{
 
         }
         leftFront.set(-frontleft);
-        leftBack.set(backleft);
-        rightFront.set(-frontright);
+        leftBack.set(-backleft);
+        rightFront.set(frontright);
         rightBack.set(backright);
     }
     public void setWeightedPowers(double front, double strafe, double heading){
