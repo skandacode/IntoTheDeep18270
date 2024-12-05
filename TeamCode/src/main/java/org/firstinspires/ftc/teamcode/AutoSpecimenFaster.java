@@ -13,6 +13,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.pathing.WayPoint;
+import org.firstinspires.ftc.teamcode.subsystems.GoBildaPinpointDriver;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
@@ -211,7 +212,7 @@ public class AutoSpecimenFaster extends LinearOpMode {
                 .transitionTimed(0.5)
                 .state((autoStates.intakeRetract1))
                 .onEnter(()->intake.retract())
-                .transitionTimed(0.4)
+                .transitionTimed(0.5)
                 .state(autoStates.intakePos1)
                 .onEnter(()->drive.setTarget(specimenGrab))
                 .transitionTimed(1)
@@ -336,6 +337,9 @@ public class AutoSpecimenFaster extends LinearOpMode {
             telemetry.addData("State", autoMachine.getState());
             telemetry.addData("Specimen State", specimenMachine.getState());
             telemetry.addData("At target", outtake.atTarget());
+            if (drive.odometry.getDeviceStatus() != GoBildaPinpointDriver.DeviceStatus.READY){
+                System.out.println(drive.odometry.getDeviceStatus());
+            }
 
             telemetry.addData("Ms per loop", (currLoop - prevLoop) / 1000000);
             prevLoop = currLoop;

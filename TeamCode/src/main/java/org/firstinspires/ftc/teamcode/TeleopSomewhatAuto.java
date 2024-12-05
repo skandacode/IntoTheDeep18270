@@ -201,6 +201,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
         }
 
         waitForStart();
+        outtake.transferPos();
         do{
             outtake.setPower(-1);
             sleep(100);

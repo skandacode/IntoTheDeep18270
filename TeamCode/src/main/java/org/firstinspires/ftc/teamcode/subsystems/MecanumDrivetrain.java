@@ -40,6 +40,7 @@ public class MecanumDrivetrain{
 
     public GoBildaPinpointDriver odometry;
 
+    Pose2D position;
 
     public MecanumDrivetrain(HardwareMap hwMap, Telemetry telemetry, FtcDashboard dashboard){
         this.telemetry=telemetry;
@@ -95,9 +96,9 @@ public class MecanumDrivetrain{
         setWeightedPowers(x, y, turnPower);
     }
     public void setTarget(WayPoint target){
-        translationalControllerX.reset();
-        translationalControllerY.reset();
-        headingController.reset();
+        //translationalControllerX.reset();
+        //translationalControllerY.reset();
+        //headingController.reset();
 
         translationalControllerX.setSetPoint(target.getPosition().getX(DistanceUnit.INCH));
         translationalControllerY.setSetPoint(target.getPosition().getY(DistanceUnit.INCH));
@@ -108,50 +109,92 @@ public class MecanumDrivetrain{
         headingController.setTolerance(target.getTolerance().getHeading(AngleUnit.RADIANS));
     }
     public void update() {
-        odometry.update();
-        Pose2D position = odometry.getPosition();
-        telemetry.addData("position", position.getX(DistanceUnit.INCH)+" "+position.getY(DistanceUnit.INCH)+" "+position.getHeading(AngleUnit.DEGREES));
+        try {
+            odometry.update();
+            /*if (odometry.getDeviceStatus() != GoBildaPinpointDriver.DeviceStatus.READY) {
+                System.out.println("Started disconnect");
+                setWeightedPowers(0, 0, 0);
+                odometry.resetPosAndIMU();
+                while (odometry.getDeviceStatus() != GoBildaPinpointDriver.DeviceStatus.READY) {
+                    System.out.println("continued disconnect");
+                    odometry.update();
+                }
+                odometry.setPosition(position);
+                System.out.println("reset odometry");
+            }*/
+            position = odometry.getPosition();
+            telemetry.addData("position", position.getX(DistanceUnit.INCH)+" "+position.getY(DistanceUnit.INCH)+" "+position.getHeading(AngleUnit.DEGREES));
 
-        TelemetryPacket packet = new TelemetryPacket();
-        packet.fieldOverlay().setFill("blue")
-                .strokeCircle(position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH), 8.5)
-                .strokeLine(position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH),
-                        (Math.cos(position.getHeading(AngleUnit.RADIANS))*5)+ position.getX(DistanceUnit.INCH),
-                        (Math.sin(position.getHeading(AngleUnit.RADIANS))*5)+ position.getY(DistanceUnit.INCH));
+            TelemetryPacket packet = new TelemetryPacket();
+            packet.fieldOverlay().setFill("blue")
+                    .strokeCircle(position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH), 8.5)
+                    .strokeLine(position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH),
+                            (Math.cos(position.getHeading(AngleUnit.RADIANS))*5)+ position.getX(DistanceUnit.INCH),
+                            (Math.sin(position.getHeading(AngleUnit.RADIANS))*5)+ position.getY(DistanceUnit.INCH));
 
-        dashboard.sendTelemetryPacket(packet);
+            dashboard.sendTelemetryPacket(packet);
+        } catch (Exception e) {
+            System.out.println("Exception caught - " + e.toString());
+            e.printStackTrace(System.out);
+        }
+
     }
     public void updatePIDS(){
-        double heading=odometry.getPosition().getHeading(AngleUnit.RADIANS);
-        telemetry.addData("before normalizing PID heading", heading);
-        while (Math.abs(heading-headingController.getSetPoint())>Math.PI){
-            if (heading<headingController.getSetPoint()){
-                heading=heading+2*Math.PI;
-            }else{
-                heading=heading-2*Math.PI;
+        try{
+            double heading = odometry.getPosition().getHeading(AngleUnit.RADIANS);
+            telemetry.addData("before normalizing PID heading", heading);
+            while (Math.abs(heading - headingController.getSetPoint()) > Math.PI) {
+                if (heading < headingController.getSetPoint()) {
+                    heading = heading + 2 * Math.PI;
+                } else {
+                    heading = heading - 2 * Math.PI;
+                }
             }
-        }
-        Pose2D position = odometry.getPosition();
-        telemetry.addData("Before calculating PID odometry", position.getX(DistanceUnit.INCH)+" "+position.getY(DistanceUnit.INCH)+" "+position.getHeading(AngleUnit.DEGREES));
-        telemetry.addData("after normalizing PID heading", heading);
-        double x_velo=translationalControllerX.calculate(position.getX(DistanceUnit.INCH));
-        double y_velo=translationalControllerY.calculate(position.getY(DistanceUnit.INCH));
-        double heading_velo=headingController.calculate(heading);
-        telemetry.addData("velocity x before check", x_velo);
-        telemetry.addData("velocity y before check", y_velo);
-        telemetry.addData("velocity heading before check", heading_velo);
+            Pose2D position = odometry.getPosition();
+            telemetry.addData("Before calculating PID odometry", position.getX(DistanceUnit.INCH) + " " + position.getY(DistanceUnit.INCH) + " " + position.getHeading(AngleUnit.DEGREES));
+            telemetry.addData("after normalizing PID heading", heading);
 
-        if (atTarget()){
-            x_velo=0;
-            y_velo=0;
-            heading_velo=0;
-            telemetry.addLine("at target");
-        }
-        telemetry.addData("velocity x", x_velo);
-        telemetry.addData("velocity y", y_velo);
-        telemetry.addData("velocity heading", heading_velo);
+            if (Double.isNaN(position.getX(DistanceUnit.INCH)) || Double.isNaN(position.getY(DistanceUnit.INCH)) || Double.isNaN(heading)) {
+                System.out.println("THE INPUT IS NAN");
+                return;
+            }
 
-        driveFieldCentric(x_velo, y_velo,heading_velo, heading);
+            double x_velo = translationalControllerX.calculate(position.getX(DistanceUnit.INCH));
+            double y_velo = translationalControllerY.calculate(position.getY(DistanceUnit.INCH));
+            double heading_velo = headingController.calculate(heading);
+            telemetry.addData("velocity x before check", x_velo);
+            telemetry.addData("velocity y before check", y_velo);
+            telemetry.addData("velocity heading before check", heading_velo);
+
+            if (Double.isNaN(x_velo) || Double.isNaN(y_velo) || Double.isNaN(heading_velo)) {
+                translationalControllerX.reset();
+                translationalControllerY.reset();
+                headingController.reset();
+                x_velo = 0;
+                y_velo = 0;
+                heading_velo = 0;
+
+                System.out.println("RESETING");
+            }
+
+
+            if (atTarget()) {
+                x_velo = 0;
+                y_velo = 0;
+                heading_velo = 0;
+                telemetry.addLine("at target");
+            }
+            telemetry.addData("velocity x", x_velo);
+            telemetry.addData("velocity y", y_velo);
+            telemetry.addData("velocity heading", heading_velo);
+
+            driveFieldCentric(x_velo, y_velo, heading_velo, heading);
+        }catch (Exception e) {
+            System.out.println("Exception caught - " + e.toString());
+            e.printStackTrace(System.out);
+        }
+
+
     }
     public boolean atTarget(){
         return translationalControllerX.atSetPoint() && translationalControllerY.atSetPoint() && headingController.atSetPoint();
