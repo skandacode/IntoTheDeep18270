@@ -31,7 +31,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
 
     Intake.SampleColor targetColor = Intake.SampleColor.YELLOW;
 
-    public static int targetLiftPosSample = 3000;
+    public static int targetLiftPosSample =2900;
 
     public static Intake.SampleColor allianceColor= Intake.SampleColor.BLUE;
     Intake.SampleColor currentSense= Intake.SampleColor.NONE;
@@ -61,7 +61,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 .transition(() -> gamepad1.y)
                 .state(SampleStates.EXTEND)
                 .onEnter(()->intake.setExtended(true))
-                .transitionTimed(0.1)
+                .transitionTimed(0.025)
                 .state(SampleStates.DROP)
                 .onEnter(() -> intake.intakePosition())
                 .loop(()->{
@@ -75,7 +75,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                         }
                     }
                 })
-                .transition(()->intake.getDistance()<4)
+                .transition(()->intake.getDistance()<5)
                 .state(SampleStates.SENSORWAIT)
                 .onEnter(()->intake.intakePosition())
                 .transitionTimed(0.1)
@@ -88,19 +88,25 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 .transition(() -> currentSense != targetColor && currentSense != allianceColor, SampleStates.EJECT)
 
                 .state(SampleStates.EJECT, true)
-                .onEnter(() -> intake.eject())
+                .onEnter(() -> {
+                    intake.eject();
+                    intake.setCover(false);
+                })
                 .transitionTimed(0.7, SampleStates.DROP)
 
                 .state(SampleStates.RETRACT)
                 .onEnter(() -> {
                     intake.retract();
                     intake.setCover(true);
-                    intake.setPower(0.7);
+                    intake.setPower(0.4);
                     outtake.transferPos();
                 })
-                .transitionTimed(0.2)
+                .transitionTimed(0.1)
                 .state(SampleStates.OPENCOVER)
-                .onEnter(() -> intake.setCover(false))
+                .onEnter(() -> {
+                    intake.setCover(false);
+                    intake.setPower(0.1);
+                })
                 .transition(() -> intake.isDone())
 
                 .state(SampleStates.WAIT)
@@ -108,12 +114,16 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 .transitionTimed(0.7)
 
                 .state(SampleStates.CLOSE)
-                .onEnter(() -> outtake.closeClaw())
+                .onEnter(() -> {
+                    outtake.closeClaw();
+                    intake.setPower(0.4);
+                })
                 .transitionTimed(0.2)
 
                 .state(SampleStates.LIFT)
                 .onEnter(() -> {
                     outtake.setTargetPos(targetLiftPosSample);
+                    intake.setPower(0);
                 })
                 .loop(() -> {
                     if (gamepad1.left_trigger > 0.3) {
@@ -124,20 +134,29 @@ public class TeleopSomewhatAuto extends LinearOpMode {
 
                 .state(SampleStates.WRIST).onEnter(() -> {
                     outtake.scorePos();
-                    intake.setPower(0);
-                    intake.setPower(-0.2);
+                    intake.setPower(-0.5);
                 }).loop(() -> {
                     if (gamepad1.left_trigger > 0.3) {
                         outtake.setTargetPos(500);
                     }
                 }).transition(() -> gamepad1.left_bumper)
 
-                .state(SampleStates.OPEN).onEnter(() -> outtake.openClaw()).transitionTimed(1.5)
-
-                .state(SampleStates.LOWERLIFT).onEnter(() -> {
+                .state(SampleStates.OPEN)
+                .onEnter(() -> outtake.openClaw())
+                .transitionTimed(0.5)
+                .transition(()->gamepad1.y || gamepad1.left_stick_y<-0.1)
+                .onExit(() -> {
                     outtake.setTargetPos(0);
                     outtake.transferPos();
-                }).transition(() -> (outtake.atTarget() || gamepad1.y), SampleStates.IDLE).build();
+                })
+                .state(SampleStates.LOWERLIFT)
+                .onEnter(() -> {
+                    outtake.setTargetPos(0);
+                    outtake.transferPos();
+                })
+                .transition(()->gamepad1.left_trigger>0.3)
+                .transition(() -> (outtake.atTarget() || gamepad1.y), SampleStates.IDLE)
+                .build();
         StateMachine specimenScorer = new StateMachineBuilder()
                 .state(SpecimenScoreStates.IDLE)
                 .transition(() -> gamepad1.dpad_up)
@@ -162,7 +181,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 .transitionTimed(0.3)
                 .state(SpecimenScoreStates.OPENCLAW)
                 .onEnter(() -> outtake.openClaw())
-                .transitionTimed(0.2)
+                .transitionTimed(1)
                 .state(SpecimenScoreStates.RETRACT)
                 .onEnter(() -> outtake.transferPos())
                 .transition(() -> (outtake.atTarget() || gamepad1.dpad_up), SpecimenScoreStates.IDLE)
@@ -182,6 +201,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
         }
 
         waitForStart();
+        outtake.transferPos();
         do{
             outtake.setPower(-1);
             sleep(100);
@@ -226,9 +246,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
             if (gamepad1.touchpad && sampleMachine.getState()==SampleStates.IDLE && specimenScorer.getState()==SpecimenScoreStates.IDLE){
                 intake.setPower(0.5);
                 intake.setExtendo(0.3);
-                sleep(200);
-                outtake.closeClaw();
-                sampleMachine.setState(SampleStates.CLOSE);
+                sampleMachine.setState(SampleStates.WAIT);
             }
             if (gamepad1.left_stick_button){
                 hanging=true;
@@ -241,7 +259,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 pullingdown=true;
             }
             if (pullingdown){
-                if (outtake.getLiftPos()>2000){
+                if (outtake.getLiftPos()>1900){
                     outtake.setPower(-1);
                 }else{
                     outtake.setPower(-0.5);
@@ -255,7 +273,15 @@ public class TeleopSomewhatAuto extends LinearOpMode {
             if (!pullingdown){
                 outtake.update();
             }
+            if (gamepad1.share){
+                telemetry.addData("intake distance", intake.getDistance());
+                telemetry.addData("intake color", intake.getColor());
+            }
+            telemetry.addData("gamepad strafe", gamepad1.left_stick_x);
             telemetry.addData("target color", targetColor.toString());
+            telemetry.addData("alliance color", allianceColor.toString());
+            telemetry.addData("Intake speed", intake.getIntakeSpeed());
+
             telemetry.addData("State sample", sampleMachine.getState());
             telemetry.addData("Specimen sample", specimenScorer.getState());
 

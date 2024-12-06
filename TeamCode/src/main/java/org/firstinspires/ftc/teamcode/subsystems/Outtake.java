@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.CachedMotorEx;
@@ -10,7 +11,7 @@ import org.firstinspires.ftc.teamcode.hardware.CachedMotorEx;
 public class Outtake implements Subsystem{
     private CachedMotorEx leftLift, rightLift;
     private Servo depositFlip1, depositFlip2, wrist, claw;
-
+    private TouchSensor outtakeEnd0;
     private int targetPos=0;
 
     public enum possibleHeights {HIGHBASKET, LOWBASKET, HIGHSPECIMEN, LOWSPECIMEN, HUMANPLAYER}
@@ -27,6 +28,9 @@ public class Outtake implements Subsystem{
 
         wrist=hwMap.servo.get("wrist");
         claw=hwMap.servo.get("claw");
+
+        outtakeEnd0=hwMap.get(TouchSensor.class, "outtake_limit_0");
+
 
         resetEncoder();
 
@@ -55,7 +59,7 @@ public class Outtake implements Subsystem{
 
 
     public void closeClaw(){
-        claw.setPosition(0.99);
+        claw.setPosition(1);
     }
 
     public void setFlipPos(double pos){
@@ -84,6 +88,9 @@ public class Outtake implements Subsystem{
     }
     @Override
     public void update() {
+        if (outtakeEnd0.isPressed()){
+            resetEncoder();
+        }
         double controller_output=controller.calculate(getLiftPos());
         telemetry.addData("Outtake applied power", controller_output);
         setPower(controller_output);
@@ -99,14 +106,14 @@ public class Outtake implements Subsystem{
     public void specimenHoldPos(){
         setFlipPos(0.8);
         closeClaw();
-        setWristPos(0.5);
-        setTargetPos(1350);
+        setWristPos(0.61);
+        setTargetPos(1200);
     }
     public void specimenScorePos(){
         setFlipPos(0.6);
-        setWristPos(0.5);
+        setWristPos(0.65);
         closeClaw();
-        setTargetPos(1600);
+        setTargetPos(1750);
     }
 
     public int getTargetPos() {

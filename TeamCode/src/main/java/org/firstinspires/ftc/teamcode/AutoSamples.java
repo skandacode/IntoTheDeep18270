@@ -41,7 +41,7 @@ public class AutoSamples extends LinearOpMode {
 
         WayPoint bucketPos1=new WayPoint(new Pose2D(DistanceUnit.INCH, -48, -52, AngleUnit.DEGREES, 45),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint bucketPos2=new WayPoint(new Pose2D(DistanceUnit.INCH, -51, -55, AngleUnit.DEGREES, 45),
+        WayPoint bucketPos2=new WayPoint(new Pose2D(DistanceUnit.INCH, -52, -56, AngleUnit.DEGREES, 45),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint prepark=new WayPoint(new Pose2D(DistanceUnit.INCH, -34, -8, AngleUnit.DEGREES, 180),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
@@ -55,11 +55,11 @@ public class AutoSamples extends LinearOpMode {
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
         WayPoint presample2=new WayPoint(new Pose2D(DistanceUnit.INCH, -53, -56.5, AngleUnit.DEGREES, 95),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
-        WayPoint sample2=new WayPoint(new Pose2D(DistanceUnit.INCH, -55, -50, AngleUnit.DEGREES, 95),
+        WayPoint sample2=new WayPoint(new Pose2D(DistanceUnit.INCH, -57, -50, AngleUnit.DEGREES, 95),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
         WayPoint presample3=new WayPoint(new Pose2D(DistanceUnit.INCH, -41.5, -41, AngleUnit.DEGREES, 155),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
-        WayPoint sample3=new WayPoint(new Pose2D(DistanceUnit.INCH, -47, -36, AngleUnit.DEGREES, 160),
+        WayPoint sample3=new WayPoint(new Pose2D(DistanceUnit.INCH, -45, -36, AngleUnit.DEGREES, 160),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
 
 

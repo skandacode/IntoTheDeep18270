@@ -79,7 +79,7 @@ public class Intake implements Subsystem {
     }
     public void setCover(boolean closed){
         if (closed){
-            cover.setPosition(0.9);
+            cover.setPosition(0.94);
         }else{
             cover.setPosition(0.08);
         }
@@ -103,11 +103,11 @@ public class Intake implements Subsystem {
     public void intakePosition(){
         setExtended(true);
         setCover(true);
-        setFlip(0.32);
+        setFlip(0.31);
         setPower(1);
     }
     public void eject(){
-        setCover(false);
+        //setCover(false);
         setFlip(0.62);
     }
     public void retract(){
@@ -127,13 +127,10 @@ public class Intake implements Subsystem {
         return intakecolor.getDistance(DistanceUnit.CM);
     }
     public SampleColor getColor(){
-        if (getDistance()<4){
-            for (int i=0; i<10; i++){
-                getRawSensorValues();
-            }
+        if (getDistance()<5){
             int[] rgbValues = getRawSensorValues();
             System.out.println(Arrays.toString(rgbValues));
-            int[] tweakedValues = new int[] {rgbValues[0], rgbValues[1]-25, rgbValues[2]-100};
+            int[] tweakedValues = new int[] {rgbValues[0]-20, rgbValues[1]-25, rgbValues[2]-30};
             if (tweakedValues[0]>tweakedValues[1] && tweakedValues[0]>tweakedValues[2]){
                 System.out.println(Arrays.toString(tweakedValues)+" Red");
                 return SampleColor.RED;
@@ -149,6 +146,7 @@ public class Intake implements Subsystem {
         }else{
             return SampleColor.NONE;
         }
+        System.out.println("Possible intake hang");
         return SampleColor.NONE;
     }
 
