@@ -111,9 +111,9 @@ public class Outtake implements Subsystem{
     }
     public void specimenScorePos(){
         setFlipPos(0.6);
-        setWristPos(0.65);
+        setWristPos(0.63);
         closeClaw();
-        setTargetPos(1750);
+        setTargetPos(1900);
     }
 
     public int getTargetPos() {
