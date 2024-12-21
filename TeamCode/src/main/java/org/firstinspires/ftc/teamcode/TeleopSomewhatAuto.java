@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.sfdev.assembly.state.StateMachine;
@@ -24,7 +25,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
     MecanumDrivetrain drive;
 
     public enum SampleStates {
-        IDLE, EXTEND, DROP, SENSORWAIT, SENSE, RETRACT, OPENCOVER, WAIT, CLOSE, LIFT, WRIST, OPEN, LOWERLIFT, EJECT
+        IDLE, EXTEND, DROP, SENSORWAIT, SENSE, RETRACT, OPENCOVER, WAIT, CLOSE, LIFT, WRIST, WAITBEFOREOPEN, OPEN, LOWERLIFT, EJECT
     }
 
     public enum SpecimenScoreStates {IDLE, INTAKEPOS, INTAKE, CLOSE_CLAW, HOLD, SCORE, OPENCLAW, RETRACT}
@@ -142,7 +143,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 }).transition(() -> gamepad1.left_bumper)
 
                 .state(SampleStates.OPEN)
-                .onEnter(() -> outtake.openClaw())
+                .onEnter(() -> outtake.openClawWide())
                 .transitionTimed(0.5)
                 .transition(()->gamepad1.y || (gamepad1.left_stick_y<-0.8 && !gamepad1.right_bumper))
                 .onExit(() -> {

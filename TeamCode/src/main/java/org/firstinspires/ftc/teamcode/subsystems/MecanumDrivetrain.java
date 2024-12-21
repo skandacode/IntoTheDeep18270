@@ -27,7 +27,7 @@ public class MecanumDrivetrain implements Subsystem{
     SimpleMotorFeedforward strafeFeedforward=new SimpleMotorFeedforward(0.26, 1);
     SimpleMotorFeedforward headingFeedforward=new SimpleMotorFeedforward(0.135, 1);
 
-    PIDFController translationalControllerY=new PIDFController(0.1, 0, 0.008, 0);
+    PIDFController translationalControllerY=new PIDFController(0.09, 0, 0.01, 0);
     PIDFController translationalControllerX=new PIDFController(
             translationalControllerY.getP(),
             translationalControllerY.getI(),

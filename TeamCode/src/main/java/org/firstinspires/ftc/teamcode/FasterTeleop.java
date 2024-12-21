@@ -24,8 +24,9 @@ public class FasterTeleop extends LinearOpMode {
     MecanumDrivetrain drive;
 
     public enum SampleStates {
-        IDLE, EXTEND, DROP, SENSORWAIT, SENSE, RETRACT, OPENCOVER, WAIT, CLOSE, LIFT, PARTIALFLIP, WRIST, OPEN, LOWERLIFT, EJECT
+        IDLE, EXTEND, DROP, SENSORWAIT, SENSE, RETRACT, OPENCOVER, WAIT, CLOSE, LIFT, PARTIALFLIP, WRIST, OPEN, LOWERLIFT, EJECTFLIP, EJECTLIDOPEN
     }
+
 
     public enum SpecimenScoreStates {IDLE, INTAKEPOS, INTAKE, CLOSE_CLAW, HOLD, SCORE, OPENCLAW, RETRACT}
 
@@ -69,10 +70,12 @@ public class FasterTeleop extends LinearOpMode {
                         if (intake.getIntakeSpeed() != -1){
                             intake.setPower(-1);
                         }
+                        intake.setPower(-1);
                     }else{
                         if (intake.getIntakeSpeed()==-1){
                             intake.intakePosition();
                         }
+                        intake.setPower(1);
                     }
                 })
                 .transition(()->intake.getDistance()<5)
@@ -85,14 +88,19 @@ public class FasterTeleop extends LinearOpMode {
                     return currentSense == targetColor || currentSense== allianceColor;
                 }, SampleStates.RETRACT)
                 .transition(()->currentSense == Intake.SampleColor.NONE, SampleStates.DROP)
-                .transition(() -> currentSense != targetColor && currentSense != allianceColor, SampleStates.EJECT)
+                .transition(() -> currentSense != targetColor && currentSense != allianceColor, SampleStates.EJECTFLIP)
 
-                .state(SampleStates.EJECT, true)
+                .state(SampleStates.EJECTFLIP, true)
                 .onEnter(() -> {
                     intake.eject();
+                })
+                .transitionTimed(0.2, SampleStates.EJECTLIDOPEN)
+
+                .state(SampleStates.EJECTLIDOPEN, true)
+                .onEnter(() -> {
                     intake.setCover(false);
                 })
-                .transitionTimed(0.7, SampleStates.DROP)
+                .transitionTimed(0.4, SampleStates.DROP)
 
                 .state(SampleStates.RETRACT)
                 .onEnter(() -> {
@@ -125,23 +133,42 @@ public class FasterTeleop extends LinearOpMode {
                     outtake.setTargetPos(targetLiftPosSample);
                     intake.setPower(0);
                 })
+                .loop(() -> {
+                    if (gamepad1.left_trigger > 0.3) {
+                        outtake.setTargetPos(500);
+                        outtake.scorePos();
+                    }
+                })
                 .transitionTimed(0.3)
 
                 .state(SampleStates.PARTIALFLIP)
                 .onEnter(()->{
                     outtake.setFlipPos(0.3);
                     outtake.setWristPos(0.5);
-                    intake.setPower(-0.5);
+                    intake.setPower(-1);
                 })
+                .loop(() -> {
+                    if (gamepad1.left_trigger > 0.3) {
+                        outtake.setTargetPos(500);
+                        outtake.scorePos();
+                    }
+                })
+                .transition(()->gamepad1.left_bumper && outtake.getTargetPos()==500, SampleStates.OPEN)
                 .transition(()->outtake.getLiftPos()>2400)
 
                 .state(SampleStates.WRIST).onEnter(() -> {
-                    outtake.scorePos();
+                    outtake.scorePosTeleop();
+                })
+                .loop(() -> {
+                    if (gamepad1.left_trigger > 0.3) {
+                        outtake.setTargetPos(500);
+                        outtake.scorePos();
+                    }
                 })
                 .transition(() -> gamepad1.left_bumper)
 
                 .state(SampleStates.OPEN)
-                .onEnter(() -> outtake.openClaw())
+                .onEnter(() -> outtake.openClawWide())
                 .transitionTimed(0.5)
                 .transition(()->gamepad1.y || (gamepad1.left_stick_y<-0.8 && !gamepad1.right_bumper))
                 .onExit(() -> {
@@ -163,11 +190,11 @@ public class FasterTeleop extends LinearOpMode {
                 .onEnter(() -> {
                     outtake.scorePos();
                     outtake.openClawWide();
-                    outtake.setTargetPos(200);
+                    outtake.setTargetPos(300);
                 })
                 .transitionTimed(0.7)
                 .state(SpecimenScoreStates.INTAKE)
-                .onEnter(() -> outtake.setTargetPos(50))
+                .onEnter(() -> outtake.setTargetPos(150))
                 .transition(() -> gamepad1.dpad_down)
                 .state(SpecimenScoreStates.CLOSE_CLAW)
                 .onEnter(() -> outtake.closeClaw())

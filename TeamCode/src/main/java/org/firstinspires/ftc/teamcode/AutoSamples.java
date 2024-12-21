@@ -125,7 +125,7 @@ public class AutoSamples extends LinearOpMode {
                 .transition(() -> lbPressed)
 
                 .state(TeleopSomewhatAuto.SampleStates.OPEN).onEnter(() -> {
-                    outtake.openClaw();
+                    outtake.openClawWide();
                     lbPressed=false;
                 }).transitionTimed(2)
 
