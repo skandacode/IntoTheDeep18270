@@ -205,6 +205,7 @@ public class AutoSpecimen extends LinearOpMode {
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 0.5));
 
         waitForStart();
+        intake.retract();
         drive.setTarget(startPoint);
         drive.setPosition(startPoint.getPosition());
         intake.retract();
