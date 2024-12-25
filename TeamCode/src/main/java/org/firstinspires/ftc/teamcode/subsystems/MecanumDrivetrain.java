@@ -7,6 +7,7 @@ import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.controller.wpilibcontroller.SimpleMotorFeedforward;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -17,30 +18,29 @@ import org.firstinspires.ftc.teamcode.hardware.CachedMotorEx;
 import org.firstinspires.ftc.teamcode.pathing.WayPoint;
 
 @Config
-public class MecanumDrivetrain{
+public class MecanumDrivetrain implements Subsystem{
     CachedMotorEx leftFront;
     CachedMotorEx leftBack;
     CachedMotorEx rightFront;
     CachedMotorEx rightBack;
+    SimpleMotorFeedforward forwardFeedforward=new SimpleMotorFeedforward(0.12, 1);
+    SimpleMotorFeedforward strafeFeedforward=new SimpleMotorFeedforward(0.26, 1);
+    SimpleMotorFeedforward headingFeedforward=new SimpleMotorFeedforward(0.135, 1);
 
-    SimpleMotorFeedforward forwardFeedforward=new SimpleMotorFeedforward(0.08, 0.9);
-    SimpleMotorFeedforward strafeFeedforward=new SimpleMotorFeedforward(0.2, 1);
-    SimpleMotorFeedforward headingFeedforward=new SimpleMotorFeedforward(0.1, 1);
-
-    PIDFController translationalControllerY=new PIDFController(0.1, 0, 0.01, 0);
+    PIDFController translationalControllerY=new PIDFController(0.09, 0, 0.01, 0);
     PIDFController translationalControllerX=new PIDFController(
             translationalControllerY.getP(),
             translationalControllerY.getI(),
             translationalControllerY.getD(),
             translationalControllerY.getF());
-    PIDFController headingController=new PIDFController(1, 0, 0.05, 0);
+    PIDFController headingController=new PIDFController(1, 0, 0, 0);
 
     Telemetry telemetry;
     FtcDashboard dashboard;
 
-    public GoBildaPinpointDriver odometry;
+    public SparkFunOTOS odometry;
 
-    Pose2D position;
+    public Pose2D position;
 
     public MecanumDrivetrain(HardwareMap hwMap, Telemetry telemetry, FtcDashboard dashboard){
         this.telemetry=telemetry;
@@ -54,17 +54,24 @@ public class MecanumDrivetrain{
         leftBack.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         rightBack.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
 
-        odometry = hwMap.get(GoBildaPinpointDriver.class,"odo");
-        odometry.setOffsets(-190.0, -168.0);
-        odometry.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
-        odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
-        odometry.recalibrateIMU();
+
+        odometry = hwMap.get(SparkFunOTOS.class, "otos");
+        odometry.calibrateImu();
+        odometry.setLinearScalar(1.0726534030253347);
+        odometry.setAngularScalar(0.9885441764832054);
+        odometry.setLinearUnit(DistanceUnit.INCH);
+        odometry.setAngularUnit(AngleUnit.DEGREES);
+        SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(-5, 0, 90);
+        odometry.setOffset(offset);
+        odometry.resetTracking();
+
+        odometry.setPosition(new SparkFunOTOS.Pose2D());
     }
 
     public void setRawPowers(double frontleft, double frontright, double backleft, double backright){
-        double maximum=Math.max(Math.abs(frontleft), Math.abs(frontright));
-        maximum=Math.max(maximum, Math.abs(backleft));
-        maximum=Math.max(maximum, Math.abs(backright));
+        double maximum=Math.max(frontleft, frontright);
+        maximum=Math.max(maximum, backleft);
+        maximum=Math.max(maximum, backright);
         if (maximum>1){
             frontleft=frontleft/maximum;
             frontright=frontright/maximum;
@@ -96,10 +103,6 @@ public class MecanumDrivetrain{
         setWeightedPowers(x, y, turnPower);
     }
     public void setTarget(WayPoint target){
-        //translationalControllerX.reset();
-        //translationalControllerY.reset();
-        //headingController.reset();
-
         translationalControllerX.setSetPoint(target.getPosition().getX(DistanceUnit.INCH));
         translationalControllerY.setSetPoint(target.getPosition().getY(DistanceUnit.INCH));
         headingController.setSetPoint(target.getPosition().getHeading(AngleUnit.RADIANS));
@@ -109,108 +112,60 @@ public class MecanumDrivetrain{
         headingController.setTolerance(target.getTolerance().getHeading(AngleUnit.RADIANS));
     }
     public void update() {
-        try {
-            odometry.update();
-            /*if (odometry.getDeviceStatus() != GoBildaPinpointDriver.DeviceStatus.READY) {
-                System.out.println("Started disconnect");
-                setWeightedPowers(0, 0, 0);
-                odometry.resetPosAndIMU();
-                while (odometry.getDeviceStatus() != GoBildaPinpointDriver.DeviceStatus.READY) {
-                    System.out.println("continued disconnect");
-                    odometry.update();
-                }
-                odometry.setPosition(position);
-                System.out.println("reset odometry");
-            }*/
-            position = odometry.getPosition();
-            telemetry.addData("position", position.getX(DistanceUnit.INCH)+" "+position.getY(DistanceUnit.INCH)+" "+position.getHeading(AngleUnit.DEGREES));
+        SparkFunOTOS.Pose2D rawposition= odometry.getPosition();
+        position=new Pose2D(DistanceUnit.INCH, rawposition.x, rawposition.y, AngleUnit.DEGREES, rawposition.h);
 
-            TelemetryPacket packet = new TelemetryPacket();
-            packet.fieldOverlay().setFill("blue")
-                    .strokeCircle(position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH), 8.5)
-                    .strokeLine(position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH),
-                            (Math.cos(position.getHeading(AngleUnit.RADIANS))*5)+ position.getX(DistanceUnit.INCH),
-                            (Math.sin(position.getHeading(AngleUnit.RADIANS))*5)+ position.getY(DistanceUnit.INCH));
+        telemetry.addData("position", position.getX(DistanceUnit.INCH)+" "+position.getY(DistanceUnit.INCH)+" "+position.getHeading(AngleUnit.DEGREES));
+        TelemetryPacket packet = new TelemetryPacket();
+        packet.fieldOverlay().setFill("blue")
+                .strokeCircle(position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH), 5)
+                .strokeLine(position.getX(DistanceUnit.INCH), position.getY(DistanceUnit.INCH),
+                        (Math.cos(position.getHeading(AngleUnit.RADIANS))*5)+ position.getX(DistanceUnit.INCH),
+                        (Math.sin(position.getHeading(AngleUnit.RADIANS))*5)+ position.getY(DistanceUnit.INCH));
 
-            dashboard.sendTelemetryPacket(packet);
-        } catch (Exception e) {
-            System.out.println("Exception caught - " + e.toString());
-            e.printStackTrace(System.out);
-        }
-
+        dashboard.sendTelemetryPacket(packet);
+    }
+    public SparkFunOTOS.Pose2D getVelocity(){
+        return odometry.getVelocity();
     }
     public void updatePIDS(){
-        try{
-            double heading = odometry.getPosition().getHeading(AngleUnit.RADIANS);
-            telemetry.addData("before normalizing PID heading", heading);
-            while (Math.abs(heading - headingController.getSetPoint()) > Math.PI) {
-                if (heading < headingController.getSetPoint()) {
-                    heading = heading + 2 * Math.PI;
-                } else {
-                    heading = heading - 2 * Math.PI;
-                }
+        double heading=position.getHeading(AngleUnit.RADIANS);
+        while (Math.abs(heading-headingController.getSetPoint())>Math.PI){
+            if (heading<headingController.getSetPoint()){
+                heading=heading+2*Math.PI;
+            }else{
+                heading=heading-2*Math.PI;
             }
-            Pose2D position = odometry.getPosition();
-            telemetry.addData("Before calculating PID odometry", position.getX(DistanceUnit.INCH) + " " + position.getY(DistanceUnit.INCH) + " " + position.getHeading(AngleUnit.DEGREES));
-            telemetry.addData("after normalizing PID heading", heading);
+        }
+        double x_velo=translationalControllerX.calculate(position.getX(DistanceUnit.INCH));
+        double y_velo=translationalControllerY.calculate(position.getY(DistanceUnit.INCH));
+        double heading_velo=headingController.calculate(heading);
+        telemetry.addData("velocity x", x_velo);
+        telemetry.addData("velocity y", y_velo);
+        telemetry.addData("velocity heading", heading_velo);
 
-            if (Double.isNaN(position.getX(DistanceUnit.INCH)) || Double.isNaN(position.getY(DistanceUnit.INCH)) || Double.isNaN(heading)) {
-                System.out.println("THE INPUT IS NAN");
-                return;
-            }
-
-            double x_velo = translationalControllerX.calculate(position.getX(DistanceUnit.INCH));
-            double y_velo = translationalControllerY.calculate(position.getY(DistanceUnit.INCH));
-            double heading_velo = headingController.calculate(heading);
-            telemetry.addData("velocity x before check", x_velo);
-            telemetry.addData("velocity y before check", y_velo);
-            telemetry.addData("velocity heading before check", heading_velo);
-
-            if (Double.isNaN(x_velo) || Double.isNaN(y_velo) || Double.isNaN(heading_velo)) {
-                translationalControllerX.reset();
-                translationalControllerY.reset();
-                headingController.reset();
-                x_velo = 0;
-                y_velo = 0;
-                heading_velo = 0;
-
-                System.out.println("RESETING");
-            }
-
-
-            if (atTarget()) {
-                x_velo = 0;
-                y_velo = 0;
-                heading_velo = 0;
-                telemetry.addLine("at target");
-            }
-            telemetry.addData("velocity x", x_velo);
-            telemetry.addData("velocity y", y_velo);
-            telemetry.addData("velocity heading", heading_velo);
-
-            driveFieldCentric(x_velo, y_velo, heading_velo, heading);
-        }catch (Exception e) {
-            System.out.println("Exception caught - " + e.toString());
-            e.printStackTrace(System.out);
+        if (translationalControllerY.atSetPoint()){
+            y_velo=0;
+        }
+        if (translationalControllerX.atSetPoint()){
+            x_velo=0;
+        }
+        if (headingController.atSetPoint()){
+            heading_velo=0;
         }
 
 
+        driveFieldCentric(x_velo, y_velo,heading_velo, heading);
     }
     public boolean atTarget(){
         return translationalControllerX.atSetPoint() && translationalControllerY.atSetPoint() && headingController.atSetPoint();
     }
     public void setPosition(Pose2D targetPosition){
-        odometry.setPosition(targetPosition);
 
+        odometry.setPosition(new SparkFunOTOS.Pose2D(targetPosition.getX(DistanceUnit.INCH),
+                targetPosition.getY(DistanceUnit.INCH), targetPosition.getHeading(AngleUnit.DEGREES)));
     }
     public void calibrateIMU(){
-        odometry.recalibrateIMU();
-    }
-    public void telemetryPower(){
-        telemetry.addData("Front left", leftFront.getPrevPower());
-        telemetry.addData("Front Right", rightFront.getPrevPower());
-        telemetry.addData("Back left", leftBack.getPrevPower());
-        telemetry.addData("Back right", rightBack.getPrevPower());
-
+        odometry.calibrateImu();
     }
 }

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.sfdev.assembly.state.StateMachine;
@@ -15,6 +16,8 @@ import org.firstinspires.ftc.teamcode.pathing.WayPoint;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrivetrain;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
+
+import java.util.List;
 
 @Config
 @Autonomous
@@ -33,20 +36,27 @@ public class AutoSamples extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
+        for (LynxModule hub : allHubs) {
+            hub.clearBulkCache();
+        }
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry= new MultipleTelemetry(telemetry, dashboard.getTelemetry());
         drive=new MecanumDrivetrain(hardwareMap, telemetry, dashboard);
         intake= new Intake(hardwareMap);
         outtake= new Outtake(hardwareMap, telemetry);
 
-        WayPoint bucketPos1=new WayPoint(new Pose2D(DistanceUnit.INCH, -48, -52, AngleUnit.DEGREES, 45),
+        WayPoint bucketPos1=new WayPoint(new Pose2D(DistanceUnit.INCH, -49, -50, AngleUnit.DEGREES, 45),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint bucketPos2=new WayPoint(new Pose2D(DistanceUnit.INCH, -51, -55, AngleUnit.DEGREES, 45),
+        WayPoint bucketPos2=new WayPoint(new Pose2D(DistanceUnit.INCH, -53, -54, AngleUnit.DEGREES, 45),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint prepark=new WayPoint(new Pose2D(DistanceUnit.INCH, -34, -8, AngleUnit.DEGREES, 180),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint park=new WayPoint(new Pose2D(DistanceUnit.INCH, -20, -16, AngleUnit.DEGREES, 180),
-                new Pose2D(DistanceUnit.INCH, 3, 3, AngleUnit.DEGREES, 2));
+        WayPoint park=new WayPoint(new Pose2D(DistanceUnit.INCH, -21, -10, AngleUnit.DEGREES, 180),
+                new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
 
 
         WayPoint presample1=new WayPoint(new Pose2D(DistanceUnit.INCH, -47, -56.5, AngleUnit.DEGREES, 90),
@@ -55,11 +65,11 @@ public class AutoSamples extends LinearOpMode {
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
         WayPoint presample2=new WayPoint(new Pose2D(DistanceUnit.INCH, -53, -56.5, AngleUnit.DEGREES, 95),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
-        WayPoint sample2=new WayPoint(new Pose2D(DistanceUnit.INCH, -55, -50, AngleUnit.DEGREES, 95),
+        WayPoint sample2=new WayPoint(new Pose2D(DistanceUnit.INCH, -57, -50, AngleUnit.DEGREES, 95),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
-        WayPoint presample3=new WayPoint(new Pose2D(DistanceUnit.INCH, -41.5, -41, AngleUnit.DEGREES, 155),
+        WayPoint presample3=new WayPoint(new Pose2D(DistanceUnit.INCH, -41.5, -39, AngleUnit.DEGREES, 155),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
-        WayPoint sample3=new WayPoint(new Pose2D(DistanceUnit.INCH, -46, -36, AngleUnit.DEGREES, 160),
+        WayPoint sample3=new WayPoint(new Pose2D(DistanceUnit.INCH, -44, -34, AngleUnit.DEGREES, 160),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
 
 
@@ -115,7 +125,7 @@ public class AutoSamples extends LinearOpMode {
                 .transition(() -> lbPressed)
 
                 .state(TeleopSomewhatAuto.SampleStates.OPEN).onEnter(() -> {
-                    outtake.openClaw();
+                    outtake.openClawWide();
                     lbPressed=false;
                 }).transitionTimed(2)
 
@@ -202,7 +212,7 @@ public class AutoSamples extends LinearOpMode {
                 .state(autoStates.PARK)
                 .onEnter(()-> {
                     drive.setTarget(park);
-                    outtake.setFlipPos(0.3);
+                    outtake.setFlipPos(0.28);
                     outtake.setWristPos(0.5);
                     outtake.setTargetPos(200);
                     outtake.closeClaw();
@@ -211,24 +221,17 @@ public class AutoSamples extends LinearOpMode {
                 .state(autoStates.TOUCHBAR)
                 .onEnter(()->{
                     outtake.setFlipPos(0.2);
-                    drive.setTarget(new WayPoint(drive.odometry.getPosition(), new Pose2D(DistanceUnit.INCH, 2, 2, AngleUnit.DEGREES, 2)));
+                    drive.setTarget(new WayPoint(drive.position, new Pose2D(DistanceUnit.INCH, 2, 2, AngleUnit.DEGREES, 2)));
                 })
                 .build();
 
         WayPoint startPoint=new WayPoint(new Pose2D(DistanceUnit.INCH, -36, -63, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 0.5));
 
-        while (opModeInInit()){
-            drive.update();
-            telemetry.addData("Velocity", " "+drive.odometry.getVelocity().getX(DistanceUnit.INCH)+" "+drive.odometry.getVelocity().getY(DistanceUnit.INCH)+" "+drive.odometry.getVelocity().getHeading(AngleUnit.DEGREES));
-            telemetry.update();
-            if (gamepad1.touchpad){
-                drive.calibrateIMU();
-            }
-        }
-
         waitForStart();
-        intake.retract();
+        for (LynxModule hub : allHubs) {
+            hub.clearBulkCache();
+        }
         drive.setTarget(startPoint);
         drive.setPosition(startPoint.getPosition());
         sampleMachine.start();
@@ -237,6 +240,9 @@ public class AutoSamples extends LinearOpMode {
         outtake.resetEncoder();
         long prevLoop=System.nanoTime();
         while (opModeIsActive()){
+            for (LynxModule hub : allHubs) {
+                hub.clearBulkCache();
+            }
             autoMachine.update();
             sampleMachine.update();
             drive.update();

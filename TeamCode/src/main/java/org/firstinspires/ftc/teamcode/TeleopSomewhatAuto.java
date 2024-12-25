@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.sfdev.assembly.state.StateMachine;
@@ -24,7 +25,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
     MecanumDrivetrain drive;
 
     public enum SampleStates {
-        IDLE, EXTEND, DROP, SENSORWAIT, SENSE, RETRACT, OPENCOVER, WAIT, CLOSE, LIFT, WRIST, OPEN, LOWERLIFT, EJECT
+        IDLE, EXTEND, DROP, SENSORWAIT, SENSE, RETRACT, OPENCOVER, WAIT, CLOSE, LIFT, WRIST, WAITBEFOREOPEN, OPEN, LOWERLIFT, EJECT
     }
 
     public enum SpecimenScoreStates {IDLE, INTAKEPOS, INTAKE, CLOSE_CLAW, HOLD, SCORE, OPENCLAW, RETRACT}
@@ -111,7 +112,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
 
                 .state(SampleStates.WAIT)
                 .onEnter(() -> intake.setPower(0.4))
-                .transitionTimed(0.7)
+                .transitionTimed(0.4)
 
                 .state(SampleStates.CLOSE)
                 .onEnter(() -> {
@@ -142,9 +143,9 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 }).transition(() -> gamepad1.left_bumper)
 
                 .state(SampleStates.OPEN)
-                .onEnter(() -> outtake.openClaw())
+                .onEnter(() -> outtake.openClawWide())
                 .transitionTimed(0.5)
-                .transition(()->gamepad1.y || gamepad1.left_stick_y<-0.1)
+                .transition(()->gamepad1.y || (gamepad1.left_stick_y<-0.8 && !gamepad1.right_bumper))
                 .onExit(() -> {
                     outtake.setTargetPos(0);
                     outtake.transferPos();
@@ -168,7 +169,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 })
                 .transitionTimed(0.7)
                 .state(SpecimenScoreStates.INTAKE)
-                .onEnter(() -> outtake.setTargetPos(0))
+                .onEnter(() -> outtake.setTargetPos(50))
                 .transition(() -> gamepad1.dpad_down)
                 .state(SpecimenScoreStates.CLOSE_CLAW)
                 .onEnter(() -> outtake.closeClaw())
@@ -259,7 +260,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                 pullingdown=true;
             }
             if (pullingdown){
-                if (outtake.getLiftPos()>1900){
+                if (outtake.getLiftPos()>1700){
                     outtake.setPower(-1);
                 }else{
                     outtake.setPower(-0.5);
@@ -292,7 +293,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
 
             telemetry.addData("Outtake Pos", outtake.getLiftPos());
             telemetry.addData("Extendo Pos", intake.getExtendoMotorPos());
-            drive.telemetryPower();
+
             long currLoop = System.nanoTime();
             telemetry.addData("Ms per loop", (currLoop - prevLoop) / 1000000);
             prevLoop = currLoop;

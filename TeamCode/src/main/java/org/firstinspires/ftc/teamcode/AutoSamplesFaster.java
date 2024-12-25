@@ -43,11 +43,9 @@ public class AutoSamplesFaster extends LinearOpMode {
         intake= new Intake(hardwareMap);
         outtake= new Outtake(hardwareMap, telemetry);
 
-        WayPoint bucketPos1=new WayPoint(new Pose2D(DistanceUnit.INCH, -48, -52, AngleUnit.DEGREES, 45),
+        WayPoint bucketPos2=new WayPoint(new Pose2D(DistanceUnit.INCH, -53, -55.5, AngleUnit.DEGREES, 45),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint bucketPos2=new WayPoint(new Pose2D(DistanceUnit.INCH, -52, -56, AngleUnit.DEGREES, 45),
-                new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint bucketPos25th=new WayPoint(new Pose2D(DistanceUnit.INCH, -54, -56, AngleUnit.DEGREES, 45),
+        WayPoint bucketPos25th=new WayPoint(new Pose2D(DistanceUnit.INCH, -54.5, -55.5, AngleUnit.DEGREES, 45),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint prepark=new WayPoint(new Pose2D(DistanceUnit.INCH, -34, -8, AngleUnit.DEGREES, 180),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
@@ -55,17 +53,17 @@ public class AutoSamplesFaster extends LinearOpMode {
                 new Pose2D(DistanceUnit.INCH, 3, 3, AngleUnit.DEGREES, 2));
         WayPoint presub=new WayPoint(new Pose2D(DistanceUnit.INCH, -36, -8, AngleUnit.DEGREES, 0),
                 new Pose2D(DistanceUnit.INCH, 3, 3, AngleUnit.DEGREES, 2));
-        WayPoint sub=new WayPoint(new Pose2D(DistanceUnit.INCH, -16, -12, AngleUnit.DEGREES, 0),
+        WayPoint sub=new WayPoint(new Pose2D(DistanceUnit.INCH, -15, -12, AngleUnit.DEGREES, 0),
                 new Pose2D(DistanceUnit.INCH, 3, 3, AngleUnit.DEGREES, 2));
-        WayPoint subStrafe=new WayPoint(new Pose2D(DistanceUnit.INCH, -16, 12, AngleUnit.DEGREES, 0),
+        WayPoint subStrafe=new WayPoint(new Pose2D(DistanceUnit.INCH, -15, 12, AngleUnit.DEGREES, 0),
                 new Pose2D(DistanceUnit.INCH, 3, 3, AngleUnit.DEGREES, 2));
 
 
-        WayPoint sample1=new WayPoint(new Pose2D(DistanceUnit.INCH, -46, -50, AngleUnit.DEGREES, 89),
+        WayPoint sample1=new WayPoint(new Pose2D(DistanceUnit.INCH, -49, -50, AngleUnit.DEGREES, 89),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
-        WayPoint sample2=new WayPoint(new Pose2D(DistanceUnit.INCH, -51, -49, AngleUnit.DEGREES, 101),
+        WayPoint sample2=new WayPoint(new Pose2D(DistanceUnit.INCH, -54, -49, AngleUnit.DEGREES, 101),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
-        WayPoint sample3=new WayPoint(new Pose2D(DistanceUnit.INCH, -42, -34, AngleUnit.DEGREES, 160),
+        WayPoint sample3=new WayPoint(new Pose2D(DistanceUnit.INCH, -43.5, -35.5, AngleUnit.DEGREES, 160),
                 new Pose2D(DistanceUnit.INCH, 0.5, 0.5, AngleUnit.DEGREES, 1));
 
 
@@ -109,30 +107,40 @@ public class AutoSamplesFaster extends LinearOpMode {
 
                 .state(TeleopSomewhatAuto.SampleStates.WAIT)
                 .onEnter(() -> intake.setPower(0.4))
-                .transitionTimed(0.5)
+                .transitionTimed(0.4)
 
                 .state(TeleopSomewhatAuto.SampleStates.CLOSE)
                 .onEnter(() -> outtake.closeClaw())
                 .transitionTimed(0.2)
 
-                .state(TeleopSomewhatAuto.SampleStates.LIFT)
+
+                .state(FasterTeleop.SampleStates.LIFT)
                 .onEnter(() -> {
                     outtake.setTargetPos(2950);
-                    intake.setPower(-0.5);
-                })
-                .transitionTimed(0.2)
-
-                .state(TeleopSomewhatAuto.SampleStates.WRIST).onEnter(() -> {
-                    outtake.scorePos();
                     intake.setPower(0);
-                    intake.setPower(-0.5);
                 })
+                .transitionTimed(0.3)
+
+                .state(FasterTeleop.SampleStates.PARTIALFLIP)
+                .onEnter(()->{
+                    outtake.setFlipPos(0.3);
+                    outtake.setWristPos(0.5);
+                })
+                .transition(()->outtake.getLiftPos()>2450)
+
+                .state(FasterTeleop.SampleStates.WRIST).onEnter(() -> {
+                    outtake.scorePosTeleop();
+                })
+
                 .transition(() -> lbPressed)
+
+                .state(TeleopSomewhatAuto.SampleStates.WAITBEFOREOPEN)
+                .transitionTimed(0.15)
 
                 .state(TeleopSomewhatAuto.SampleStates.OPEN).onEnter(() -> {
                     outtake.openClaw();
                     lbPressed=false;
-                }).transitionTimed(1.7)
+                }).transitionTimed(1)
 
                 .state(TeleopSomewhatAuto.SampleStates.LOWERLIFT).onEnter(() -> {
                     outtake.setTargetPos(0);
@@ -140,14 +148,11 @@ public class AutoSamplesFaster extends LinearOpMode {
                 }).transition(() -> (outtake.atTarget() || yPressed), TeleopSomewhatAuto.SampleStates.IDLE).build();
         StateMachine autoMachine = new StateMachineBuilder()
                 .state(autoStates.PREBUCKET1)
-                .onEnter(()->drive.setTarget(bucketPos1))
-                .transition(()-> drive.atTarget() && outtake.getLiftPos()>2850)
-                .state(autoStates.BUCKET1)
                 .onEnter(()->drive.setTarget(bucketPos2))
-                .transition(()-> drive.atTarget())
+                .transitionTimed(1.5)
                 .state(autoStates.SCORE1)
                 .onEnter(()->lbPressed=true)
-                .transitionTimed(0.7)
+                .transitionTimed(0.8)
 
 
                 .state(autoStates.INTAKE1)
@@ -157,11 +162,8 @@ public class AutoSamplesFaster extends LinearOpMode {
                 .onEnter(()->yPressed=true)
                 .transition(()->sampleMachine.getState()== TeleopSomewhatAuto.SampleStates.RETRACT)
                 .state(autoStates.PREBUCKET2)
-                .onEnter(()->drive.setTarget(bucketPos1))
-                .transition(()-> drive.atTarget() && outtake.getLiftPos()>2850)
-                .state(autoStates.BUCKET2)
                 .onEnter(()->drive.setTarget(bucketPos2))
-                .transition(()->drive.atTarget())
+                .transition(()-> drive.atTarget() && outtake.getLiftPos()>2500)
                 .state(autoStates.SCORE2)
                 .onEnter(()->lbPressed=true)
                 .transitionTimed(0.7)
@@ -174,11 +176,8 @@ public class AutoSamplesFaster extends LinearOpMode {
                 .onEnter(()->yPressed=true)
                 .transition(()->sampleMachine.getState()== TeleopSomewhatAuto.SampleStates.RETRACT)
                 .state(autoStates.PREBUCKET3)
-                .onEnter(()->drive.setTarget(bucketPos1))
-                .transition(()-> drive.atTarget() && outtake.getLiftPos()>2850)
-                .state(autoStates.BUCKET3)
                 .onEnter(()->drive.setTarget(bucketPos2))
-                .transition(()->drive.atTarget())
+                .transition(()-> drive.atTarget() && outtake.getLiftPos()>2500)
                 .state(autoStates.SCORE3)
                 .onEnter(()->lbPressed=true)
                 .transitionTimed(0.7)
@@ -191,11 +190,8 @@ public class AutoSamplesFaster extends LinearOpMode {
                 .onEnter(()->yPressed=true)
                 .transition(()->sampleMachine.getState()== TeleopSomewhatAuto.SampleStates.RETRACT)
                 .state(autoStates.PREBUCKET4)
-                .onEnter(()->drive.setTarget(bucketPos1))
-                .transition(()-> drive.atTarget() && outtake.getLiftPos()>2850)
-                .state(autoStates.BUCKET4)
                 .onEnter(()->drive.setTarget(bucketPos2))
-                .transition(()->drive.atTarget())
+                .transition(()-> drive.atTarget() && outtake.getLiftPos()>2500)
                 .state(autoStates.SCORE4)
                 .onEnter(()->lbPressed=true)
                 .transitionTimed(0.7)
@@ -250,14 +246,11 @@ public class AutoSamplesFaster extends LinearOpMode {
                     intake.setCover(true);
                     drive.setTarget(presub);
                 })
-                .transitionTimed(0.6)
+                .transitionTimed(1)
                 .state(autoStates.PREBUCKET5)
-                .onEnter(()->drive.setTarget(bucketPos1))
-                .transition(()->drive.atTarget() && outtake.getLiftPos()>2850)
-
-                .state(autoStates.BUCKET5)
                 .onEnter(()->drive.setTarget(bucketPos25th))
-                .transition(()->drive.atTarget())
+                .transition(()->drive.atTarget() && outtake.getLiftPos()>2500)
+
 
                 .state(autoStates.SCORE5)
                 .onEnter(()->lbPressed=true)
@@ -285,7 +278,6 @@ public class AutoSamplesFaster extends LinearOpMode {
                 .state(autoStates.TOUCHBAR)
                 .onEnter(()->{
                     outtake.setFlipPos(0.2);
-                    drive.setTarget(new WayPoint(drive.odometry.getPosition(), new Pose2D(DistanceUnit.INCH, 2, 2, AngleUnit.DEGREES, 2)));
                 })
                 .build();
 
@@ -297,8 +289,6 @@ public class AutoSamplesFaster extends LinearOpMode {
 
         while (opModeInInit()){
             drive.update();
-            telemetry.addData("Velocity", " "+drive.odometry.getVelocity().getX(DistanceUnit.INCH)+" "+drive.odometry.getVelocity().getY(DistanceUnit.INCH)+" "+drive.odometry.getVelocity().getHeading(AngleUnit.DEGREES));
-
             telemetry.update();
             if (gamepad1.touchpad){
                 drive.calibrateIMU();
@@ -318,7 +308,8 @@ public class AutoSamplesFaster extends LinearOpMode {
         waitForStart();
         long startTime=System.nanoTime();
         intake.retract();
-        outtake.scorePos();
+        outtake.specimenScorePos();
+        outtake.setTargetPos(2600);
         drive.setTarget(startPoint);
         drive.setPosition(startPoint.getPosition());
         sampleMachine.start();
