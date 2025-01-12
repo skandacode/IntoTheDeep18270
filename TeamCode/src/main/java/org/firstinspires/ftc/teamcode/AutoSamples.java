@@ -91,7 +91,7 @@ public class AutoSamples extends LinearOpMode {
                     intake.intakePosition();
                     intake.setPower(0.8);
                 })
-                .transition(()->intake.getDistance()<4)
+                .transition(()->intake.isSampleIntaked())
                 .transitionTimed(3)
                 .state(TeleopSomewhatAuto.SampleStates.RETRACT)
                 .onEnter(() -> {

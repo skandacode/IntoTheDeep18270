@@ -27,6 +27,9 @@ public class IntakeTesting extends LinearOpMode {
             intake.setPower(intakePower);
             intake.setFlip(flip);
             telemetry.addData("Extendo position", intake.getExtendoMotorPos());
+            telemetry.addData("intake distance", intake.getDistance());
+            telemetry.addData("intake color", intake.getColor());
+
             telemetry.update();
         }
     }

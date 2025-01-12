@@ -76,7 +76,7 @@ public class TeleopSomewhatAuto extends LinearOpMode {
                         }
                     }
                 })
-                .transition(()->intake.getDistance()<5)
+                .transition(()->intake.isSampleIntaked())
                 .state(SampleStates.SENSORWAIT)
                 .onEnter(()->intake.intakePosition())
                 .transitionTimed(0.1)

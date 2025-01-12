@@ -22,6 +22,7 @@ public class Intake implements Subsystem {
 
     private boolean isExtended=false;
     private boolean isDone = true;
+    public static double distThreshold = 3;
 
     double intakeSpeed=0;
 
@@ -49,7 +50,7 @@ public class Intake implements Subsystem {
             extendoMotor.resetEncoder();
         }
         if (isExtended){
-            if (getExtendoMotorPos()>-450){
+            if (getExtendoMotorPos()>-440){
                 setExtendo(-1);
                 isDone=false;
             }else{
@@ -105,7 +106,7 @@ public class Intake implements Subsystem {
     public void intakePosition(){
         setExtended(true);
         setCover(true);
-        setFlip(0.315);
+        setFlip(0.3);
         setPower(1);
     }
     public void eject(){
@@ -116,7 +117,7 @@ public class Intake implements Subsystem {
         setExtended(false);
         setPower(0);
         setCover(false);
-        setFlip(0.5);
+        setFlip(0.48);
     }
 
     public boolean isDone() {
@@ -129,7 +130,7 @@ public class Intake implements Subsystem {
         return intakecolor.getDistance(DistanceUnit.CM);
     }
     public SampleColor getColor(){
-        if (getDistance()<5){
+        if (isSampleIntaked()){
             int[] rgbValues = getRawSensorValues();
             System.out.println(Arrays.toString(rgbValues));
             int[] tweakedValues = new int[] {rgbValues[0]-20, rgbValues[1]-25, rgbValues[2]-30};
@@ -151,7 +152,9 @@ public class Intake implements Subsystem {
         System.out.println("Possible intake hang");
         return SampleColor.NONE;
     }
-
+    public boolean isSampleIntaked(){
+        return getDistance()<distThreshold;
+    }
     public double getIntakeSpeed() {
         return intakeSpeed;
     }

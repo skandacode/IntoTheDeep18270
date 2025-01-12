@@ -18,13 +18,13 @@ import java.util.List;
 
 @Config
 @TeleOp
-public class FasterTeleop extends LinearOpMode {
+public class PreExtend extends LinearOpMode {
     Outtake outtake;
     Intake intake;
     MecanumDrivetrain drive;
 
     public enum SampleStates {
-        IDLE, EXTEND, DROP, SENSORWAIT, SENSE, RETRACT, OPENCOVER, WAIT, CLOSE, LIFT, PARTIALFLIP, WRIST, OPEN, LOWERLIFT, EJECTFLIP, EJECTLIDOPEN
+        IDLE, EXTEND, SENSORWAIT, SENSE, RETRACT, OPENCOVER, WAIT, CLOSE, LIFT, PARTIALFLIP, WRIST, OPEN, LOWERLIFT, EJECTFLIP, EJECTLIDOPEN
     }
 
 
@@ -59,12 +59,17 @@ public class FasterTeleop extends LinearOpMode {
                     intake.retract();
                     intake.setPower(0);
                 })
-                .transition(() -> gamepad1.y)
+                .loop(()->{
+                    if (gamepad1.left_trigger>0.3){
+                        intake.setExtended(true);
+                    }else{
+                        intake.setExtended(false);
+                    }
+                })
+                .transition(() -> gamepad1.right_bumper && gamepad1.left_trigger>0.1)
+
                 .state(SampleStates.EXTEND)
-                .onEnter(()->intake.setExtended(true))
-                .transitionTimed(0.025)
-                .state(SampleStates.DROP)
-                .onEnter(() -> intake.intakePosition())
+                .onEnter(()->intake.intakePosition())
                 .loop(()->{
                     if (gamepad1.options){
                         if (intake.getIntakeSpeed() != -1){
@@ -79,6 +84,10 @@ public class FasterTeleop extends LinearOpMode {
                     }
                 })
                 .transition(()->intake.isSampleIntaked())
+                .transition(()->!gamepad1.right_bumper, SampleStates.IDLE)
+                .transition(()->gamepad1.left_trigger<0.1, SampleStates.IDLE)
+
+
                 .state(SampleStates.SENSORWAIT)
                 .onEnter(()->intake.intakePosition())
                 .transitionTimed(0.05)
@@ -87,7 +96,7 @@ public class FasterTeleop extends LinearOpMode {
                     currentSense=intake.getColor();
                     return currentSense == targetColor || currentSense== allianceColor;
                 }, SampleStates.RETRACT)
-                .transition(()->currentSense == Intake.SampleColor.NONE, SampleStates.DROP)
+                .transition(()->currentSense == Intake.SampleColor.NONE, SampleStates.EXTEND)
                 .transition(() -> currentSense != targetColor && currentSense != allianceColor, SampleStates.EJECTFLIP)
 
                 .state(SampleStates.EJECTFLIP, true)
@@ -100,7 +109,7 @@ public class FasterTeleop extends LinearOpMode {
                 .onEnter(() -> {
                     intake.setCover(false);
                 })
-                .transitionTimed(0.4, SampleStates.DROP)
+                .transitionTimed(0.4, SampleStates.EXTEND)
 
                 .state(SampleStates.RETRACT)
                 .onEnter(() -> {
@@ -109,7 +118,7 @@ public class FasterTeleop extends LinearOpMode {
                     intake.setPower(0.4);
                     outtake.transferPos();
                 })
-                .transitionTimed(0.1)
+                .transitionTimed(0.25)
                 .state(SampleStates.OPENCOVER)
                 .onEnter(() -> {
                     intake.setCover(false);
@@ -180,7 +189,7 @@ public class FasterTeleop extends LinearOpMode {
                     outtake.setTargetPos(0);
                     outtake.transferPos();
                 })
-                .transition(()->gamepad1.left_trigger>0.3)
+                .transition(()->gamepad1.left_trigger>0.3, SampleStates.IDLE)
                 .transition(() -> (outtake.atTarget() || gamepad1.y), SampleStates.IDLE)
                 .build();
         StateMachine specimenScorer = new StateMachineBuilder()
@@ -239,25 +248,16 @@ public class FasterTeleop extends LinearOpMode {
         outtake.transferPos();
         sampleMachine.start();
         specimenScorer.start();
-        boolean prevSampleColorToggle = false;
         long prevLoop = System.nanoTime();
         while (opModeIsActive()) {
             for (LynxModule hub : allHubs) {
                 hub.clearBulkCache();
             }
-            boolean currSampleColorToggle = gamepad1.right_trigger>0.5;
-            if (currSampleColorToggle && !prevSampleColorToggle) {
-                if (targetColor == Intake.SampleColor.YELLOW) {
-                    targetColor = allianceColor;
-                } else if (targetColor == allianceColor) {
-                    targetColor = Intake.SampleColor.YELLOW;
-                }
-            }
             if (gamepad1.share && outtake.getTargetPos()==0){
                 outtake.resetEncoder();
             }
             if (gamepad1.x) {
-                if (sampleMachine.getState() == SampleStates.EXTEND || sampleMachine.getState() == SampleStates.DROP) {
+                if (sampleMachine.getState() == SampleStates.EXTEND) {
                     sampleMachine.setState(SampleStates.IDLE);
                     intake.retract();
                     intake.setPower(0);
@@ -324,7 +324,6 @@ public class FasterTeleop extends LinearOpMode {
             prevLoop = currLoop;
 
             telemetry.update();
-            prevSampleColorToggle = currSampleColorToggle;
         }
     }
 }

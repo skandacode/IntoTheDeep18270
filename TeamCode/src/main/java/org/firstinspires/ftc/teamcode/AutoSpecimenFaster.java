@@ -68,7 +68,7 @@ public class AutoSpecimenFaster extends LinearOpMode {
                 new Pose2D(DistanceUnit.INCH,  1, 1, AngleUnit.DEGREES, 2));
         WayPoint depositPos22Strafe=new WayPoint(new Pose2D(DistanceUnit.INCH, -5, -24, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH,  1, 1, AngleUnit.DEGREES, 2));
-        WayPoint depositPos13=new WayPoint(new Pose2D(DistanceUnit.INCH, 7, -50, AngleUnit.DEGREES, 90),
+        WayPoint depositPos13=new WayPoint(new Pose2D(DistanceUnit.INCH, -7, -50, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH,  4, 4, AngleUnit.DEGREES, 3));
         WayPoint depositPos23=new WayPoint(new Pose2D(DistanceUnit.INCH, -7, -24, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH,  1, 1, AngleUnit.DEGREES, 2));
@@ -92,16 +92,16 @@ public class AutoSpecimenFaster extends LinearOpMode {
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
         WayPoint specimenGrab=new WayPoint(new Pose2D(DistanceUnit.INCH, 36, -47, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint specimenGrabForward=new WayPoint(new Pose2D(DistanceUnit.INCH, 36, -53.5, AngleUnit.DEGREES, 90),
-                new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
+        WayPoint specimenGrabForward=new WayPoint(new Pose2D(DistanceUnit.INCH, 36, -53, AngleUnit.DEGREES, 90),
+                new Pose2D(DistanceUnit.INCH, 1, 0.5, AngleUnit.DEGREES, 2));
         WayPoint specimenGrab2=new WayPoint(new Pose2D(DistanceUnit.INCH, 36, -48, AngleUnit.DEGREES, 90),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint specimenGrabForward2=new WayPoint(new Pose2D(DistanceUnit.INCH, 36, -53.5, AngleUnit.DEGREES, 90),
-                new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
+        WayPoint specimenGrabForward2=new WayPoint(new Pose2D(DistanceUnit.INCH, 36, -53, AngleUnit.DEGREES, 90),
+                new Pose2D(DistanceUnit.INCH, 1, 0.5, AngleUnit.DEGREES, 2));
         WayPoint specimenGrab3=new WayPoint(new Pose2D(DistanceUnit.INCH, 36, -48.5, AngleUnit.DEGREES, 90),
-                new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
-        WayPoint specimenGrabForward3=new WayPoint(new Pose2D(DistanceUnit.INCH, 36, -52.5, AngleUnit.DEGREES, 90),
-                new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
+                new Pose2D(DistanceUnit.INCH, 1, 0.5, AngleUnit.DEGREES, 2));
+        WayPoint specimenGrabForward3=new WayPoint(new Pose2D(DistanceUnit.INCH, 36, -51.5, AngleUnit.DEGREES, 90),
+                new Pose2D(DistanceUnit.INCH, 1, 0.5, AngleUnit.DEGREES, 2));
 
         WayPoint park=new WayPoint(new Pose2D(DistanceUnit.INCH, 45, -54, AngleUnit.DEGREES, 180),
                 new Pose2D(DistanceUnit.INCH, 1, 1, AngleUnit.DEGREES, 2));
@@ -233,10 +233,10 @@ public class AutoSpecimenFaster extends LinearOpMode {
                 .onEnter(()->drive.setTarget(preintake))
                 .transitionTimed(0.2)
                 .state(autoStates.intakePos2)
-                .onEnter(()->drive.setTarget(specimenGrab3))
+                .onEnter(()->drive.setTarget(specimenGrab2))
                 .transitionTimed(1.2)
                 .state(autoStates.intakePos2f2)
-                .onEnter(()->drive.setTarget(specimenGrabForward3))
+                .onEnter(()->drive.setTarget(specimenGrabForward2))
                 .transitionTimed(0.3)
                 .state(autoStates.closeClaw2)
                 .onEnter(()-> closedPressed=true)
