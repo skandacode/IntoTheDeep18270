@@ -145,7 +145,7 @@ public class FasterTeleop extends LinearOpMode {
                 .onEnter(()->{
                     outtake.setFlipPos(0.3);
                     outtake.setWristPos(0.5);
-                    intake.setPower(-1);
+                    intake.setPower(-0.2);
                 })
                 .loop(() -> {
                     if (gamepad1.left_trigger > 0.3) {

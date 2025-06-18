@@ -72,7 +72,7 @@ public class Outtake implements Subsystem{
     }
 
     public void transferPos(){
-        setFlipPos(0.84);
+        setFlipPos(0.82);
         setWristPos(0.19);
         openClaw();
         setTargetPos(0);
