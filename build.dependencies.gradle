@@ -18,6 +18,5 @@ dependencies {
 
     implementation 'com.acmerobotics.dashboard:dashboard:0.4.16'
     implementation 'com.github.StateFactory-Dev:StateFactory:0.3.6'
-    implementation 'com.github.Eeshwar-Krishnan:PhotonFTC:v3.0.2-ALPHA'
 }
 
