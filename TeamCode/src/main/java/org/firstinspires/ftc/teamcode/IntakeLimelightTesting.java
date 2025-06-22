@@ -8,8 +8,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 @Config
 public class IntakeLimelightTesting extends LinearOpMode {
     IntakeCopy intake;
-    public static double turretPos=0;
-    public static double flipPos=0;
+    LimelightIVK limelightIVK;
+    public static double flipPos=0.1;
     public static double wristPos=0;
     public static boolean clawClosed=false;
     public static int slidesTarget=0;
@@ -18,11 +18,12 @@ public class IntakeLimelightTesting extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         intake = new IntakeCopy(hardwareMap, telemetry);
+        limelightIVK= new LimelightIVK(hardwareMap);
         waitForStart();
         while (opModeIsActive()){
-            intake.setTargetPos(slidesTarget);
-            intake.setTurretPos(turretPos);
+            Position sampPos = limelightIVK.getPosition();
             intake.setArmPos(flipPos);
+            //intake.setDistance(slidesTarget);
             intake.setWristPos(wristPos);
             if (clawClosed){
                 intake.closeClaw();
@@ -30,7 +31,14 @@ public class IntakeLimelightTesting extends LinearOpMode {
                 intake.openClaw();
             }
             intake.update();
-            telemetry.addData("Intake pos", intake.getLiftPos());
+            telemetry.addData("Intake pos", intake.getIntakePos());
+            if (sampPos != null) {
+                sampPos.y-=4;
+                intake.goToPosition(sampPos);
+                telemetry.addData("Samp Pos x", sampPos.x);
+                telemetry.addData("Samp Pos y", sampPos.y);
+            }
+            telemetry.addData("Intake Target", intake.getTargetPos());
             telemetry.update();
         }
     }

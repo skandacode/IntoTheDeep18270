@@ -26,7 +26,7 @@ public class testing extends LinearOpMode {
     public static double turret_pos = 0.5;
     public static double arm_pos = 0.5;
     public static double wrist_pos = 0.5;
-    public static double height = 17; //height of the limeLight
+    public static double height = 14; //height of the limeLight
     public static double angle = 45; //angle of the limeLight
     public static double alpha = 0.003; //for low pass filter
     Limelight3A limelight;

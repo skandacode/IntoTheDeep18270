@@ -13,6 +13,8 @@ public class IntakeCopy implements Subsystem {
     private Servo turret, arm, wrist, claw;
     private int targetPos=0;
     private PIDFController controller;
+    public static double ticks_per_inch = 145.1*113/25.4;
+    public static double arm_length = 6; // inch
     Telemetry telemetry;
 
     public IntakeCopy (HardwareMap hwMap, Telemetry telemetry){
@@ -37,7 +39,7 @@ public class IntakeCopy implements Subsystem {
         slides.setPower(power);
     }
 
-    public int getLiftPos(){
+    public int getIntakePos(){
         return slides.getCurrentPosition();
     }
 
@@ -46,6 +48,16 @@ public class IntakeCopy implements Subsystem {
     }
     public void closeClaw(){
         claw.setPosition(0.7);
+    }
+    public void depositPos(){
+        claw.setPosition(0.7);
+        arm.setPosition(0.5);
+        turret.setPosition(0);
+        wrist.setPosition(0.5);
+    }
+    public void intakePos(){
+        claw.setPosition(0.4);
+        arm.setPosition(0.1);
     }
     public void setWristPos(double pos){ // wrist
         wrist.setPosition(pos);
@@ -62,6 +74,10 @@ public class IntakeCopy implements Subsystem {
     public void setTurretAngle(double angle){
         setTurretPos(-0.00611765*angle+0.52);
     }
+    public void setDistance (double distance){
+
+        setTargetPos((int) (25.4/113*145.1*distance*20/21));
+    }
     public void armGrab(){
         setArmPos(0);
     }
@@ -71,7 +87,7 @@ public class IntakeCopy implements Subsystem {
 
     @Override
     public void update() {
-        double controller_output=controller.calculate(getLiftPos());
+        double controller_output=controller.calculate(getIntakePos());
         telemetry.addData("Intake applied power", controller_output);
         setPower(controller_output);
     }
@@ -89,5 +105,15 @@ public class IntakeCopy implements Subsystem {
     }
     public double getCurrent(){
         return slides.getCurrent();
+    }
+    public void goToPosition(Position pos){
+        double angRad;
+        if (Math.abs(pos.x)>arm_length){
+            angRad=Math.signum(pos.x)*Math.PI/2;
+        }else{
+            angRad =Math.asin(pos.x/arm_length);
+        }
+        setTurretAngle(Math.toDegrees(angRad));
+        setDistance(pos.y-arm_length*Math.cos(angRad));
     }
 }
