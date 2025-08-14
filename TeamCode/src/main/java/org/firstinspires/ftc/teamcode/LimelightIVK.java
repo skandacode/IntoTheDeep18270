@@ -24,7 +24,7 @@ public class LimelightIVK {
         limelight = hwMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100); //frames per sec
         limelight.start();
-        limelight.pipelineSwitch(0); //blue samp
+        limelight.pipelineSwitch(0); //yellow samp
     }
     public Position getPosition(){
         LLResult result = limelight.getLatestResult();

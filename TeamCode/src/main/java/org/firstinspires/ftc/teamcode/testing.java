@@ -66,7 +66,7 @@ public class testing extends LinearOpMode {
                 double tx = result.getTx(); // How far left or right the target is (degrees)
                 double ty = result.getTy(); // How far up or down the target is (degrees)
                 double ta = result.getTa(); // How big the target looks (0%-100% of the image)
-                double distance_from_Samp_y = height*Math.tan(Math.toRadians(angle+ty)); //trig
+                double distance_from_Samp_y = height*Math.tan(Math.toRadians(angle+ty));
                 double distance_from_Samp_x = distance_from_Samp_y*Math.tan(Math.toRadians(tx));
                 telemetry.addData("Target X", tx);
                 telemetry.addData("Target Y", ty);

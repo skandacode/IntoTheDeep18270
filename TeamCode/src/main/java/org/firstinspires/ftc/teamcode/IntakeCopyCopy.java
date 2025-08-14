@@ -3,25 +3,28 @@ package org.firstinspires.ftc.teamcode;
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.hardware.CachedMotorEx;
 import org.firstinspires.ftc.teamcode.oldrobot.subsystems.Subsystem;
 
-public class IntakeCopy implements Subsystem {
+public class IntakeCopyCopy implements Subsystem {
     private final CachedMotorEx slides;
-    private Servo turret, arm, wrist, claw;
+    private Servo turret, wrist, claw;
     private int targetPos=0;
+    public NewServoMP arm;
     private PIDFController controller;
     public static double ticks_per_inch = 145.1*105/25.4;
-    public static double arm_length = 5.67; // inch
+    public static double arm_length = 7; // inch
     Telemetry telemetry;
 
-    public IntakeCopy (HardwareMap hwMap, Telemetry telemetry){
+    public IntakeCopyCopy (HardwareMap hwMap, Telemetry telemetry){
         slides = new CachedMotorEx(hwMap, "slides");
 
         turret=hwMap.servo.get("turret");
-        arm=hwMap.servo.get("arm");
+        Servo myServo = hwMap.get(Servo.class, "arm");
+        arm = new NewServoMP(myServo, 1, 2);
 
         wrist=hwMap.servo.get("wrist");
         claw=hwMap.servo.get("claw");
@@ -50,14 +53,13 @@ public class IntakeCopy implements Subsystem {
         claw.setPosition(0.6);
     }
     public void depositPos(){
-        claw.setPosition(0.7);
-        arm.setPosition(0.5);
+        arm.setTargetPosition(0.5);
         turret.setPosition(0);
         wrist.setPosition(0.5);
     }
     public void intakePos(){
         claw.setPosition(0.4);
-        arm.setPosition(0.1);
+        arm.setTargetPosition(0.1);
     }
     public void setWristPos(double pos){ // wrist
         wrist.setPosition(pos);
@@ -66,7 +68,7 @@ public class IntakeCopy implements Subsystem {
         turret.setPosition(pos);
     }
     public void setArmPos(double pos){
-        arm.setPosition(pos);
+        arm.setTargetPosition(pos);
     }
     public void resetEncoder(){
         slides.resetEncoder();
@@ -85,12 +87,10 @@ public class IntakeCopy implements Subsystem {
         setArmPos(0.7);
     }
 
-
-
-
     @Override
     public void update() {
         double controller_output=controller.calculate(getIntakePos());
+        arm.update();
         telemetry.addData("Intake applied power", controller_output);
         setPower(controller_output);
     }
@@ -121,6 +121,3 @@ public class IntakeCopy implements Subsystem {
         setWristPos(0.5);
     }
 }
-
-
-//
